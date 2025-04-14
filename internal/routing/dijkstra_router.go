@@ -2,9 +2,9 @@ package routing
 
 import (
 	"errors"
+	"github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/types"
 	"sort"
-	"stardustGo/internal/links/linktypes"
-	"stardustGo/pkg/types"
 )
 
 // DijkstraRouter implements shortest-path routing using Dijkstra's algorithm

@@ -5,9 +5,9 @@ import (
 	"sort"
 	"sync"
 
-	"stardustGo/configs"
-	"stardustGo/internal/links/linktypes"
-	"stardustGo/pkg/types"
+	"github.com/keniack/stardustGo/configs"
+	"github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // IslMstProtocol builds a global minimum spanning tree (MST) of ISL links.

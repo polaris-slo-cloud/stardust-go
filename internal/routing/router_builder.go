@@ -2,10 +2,10 @@ package routing
 
 import (
 	"fmt"
-	"stardustGo/pkg/types"
+	"github.com/keniack/stardustGo/pkg/types"
 	"strings"
 
-	"stardustGo/configs"
+	"github.com/keniack/stardustGo/configs"
 )
 
 // RouterBuilder constructs routers based on configuration.

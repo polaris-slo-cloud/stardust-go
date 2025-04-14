@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/keniack/stardustGo/configs"
+	"github.com/keniack/stardustGo/internal/computing"
 	"github.com/keniack/stardustGo/internal/deployment"
 	"github.com/keniack/stardustGo/internal/routing"
 	"github.com/keniack/stardustGo/internal/satellite"
@@ -18,22 +19,22 @@ func main() {
 	}
 
 	// Step 2: Build computing builder with configured strategies
-	computingBuilder := simulation.NewComputingBuilder(cfg.Computing)
+	computingBuilder := computing.NewComputingBuilder(cfg.Computing[0])
 
 	// Step 3: Build router builder
 	routerBuilder := routing.NewRouterBuilder(cfg.Router)
 
 	// Step 4: Initialize the satellite builder and constellation loader
-	satBuilder := satellite.NewSatelliteBuilder(routerBuilder, computingBuilder)
+	satBuilder := satellite.NewSatelliteBuilder(routerBuilder, computingBuilder, cfg.ISL)
 	constellationLoader := satellite.NewSatelliteConstellationLoader()
 	tleLoader := satellite.NewTleLoader(cfg.ISL, satBuilder)
 	constellationLoader.RegisterDataSourceLoader("tle", tleLoader)
 
 	// Step 5: Initialize simulation service
-	simService := simulation.NewSimulationService(cfg.Simulation, constellationLoader, routerBuilder, computingBuilder)
+	simService := simulation.NewSimulationService(cfg.Simulation, routerBuilder, computingBuilder)
 
 	// Step 6: Inject orchestrator (if used)
-	orchestrator := deployment.NewDefaultDeploymentOrchestrator()
+	orchestrator := deployment.NewDeploymentOrchestrator()
 	simService.Inject(orchestrator)
 
 	// Step 7: Load satellites using the loader service
@@ -44,9 +45,11 @@ func main() {
 
 	// Step 8: Optionally start the simulation loop
 	if cfg.Simulation.StepInterval >= 0 {
-		simService.StartAutorunAsync()
+		done := simService.StartAutorunAsync()
+		<-done // blocks main goroutine until simulation stops
 	}
 
-	// Block forever (simulate .NET HostedService lifetime)
-	select {}
+	select {
+	case <-make(chan struct{}): // blocks forever
+	}
 }

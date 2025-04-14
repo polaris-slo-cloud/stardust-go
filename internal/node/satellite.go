@@ -1,9 +1,9 @@
 package node
 
 import (
+	"github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/types"
 	"math"
-	"stardustGo/internal/links/linktypes"
-	"stardustGo/pkg/types"
 	"sync"
 	"time"
 )

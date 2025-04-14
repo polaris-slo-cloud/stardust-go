@@ -4,8 +4,8 @@ import (
 	"errors"
 	"sync"
 
-	"stardustGo/internal/links/linktypes"
-	"stardustGo/pkg/types"
+	"github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // IslFilterProtocol wraps another IInterSatelliteLinkProtocol and filters links

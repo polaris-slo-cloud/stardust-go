@@ -3,10 +3,10 @@ package routing
 
 import (
 	"errors"
+	"github.com/keniack/stardustGo/configs"
+	"github.com/keniack/stardustGo/pkg/types"
 	"math"
 	"sort"
-	"stardustGo/configs"
-	"stardustGo/pkg/types"
 )
 
 // AStarRouter implements the A* pathfinding algorithm between nodes.

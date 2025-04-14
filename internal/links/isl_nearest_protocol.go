@@ -5,9 +5,9 @@ import (
 	"sort"
 	"sync"
 
-	configmod "stardustGo/configs"
-	linkmod "stardustGo/internal/links/linktypes"
-	"stardustGo/pkg/types"
+	configmod "github.com/keniack/stardustGo/configs"
+	linkmod "github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // IslNearestProtocol connects a node to its N nearest neighbors using ISLs.

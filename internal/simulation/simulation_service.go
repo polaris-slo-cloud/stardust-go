@@ -1,13 +1,14 @@
 package simulation
 
 import (
+	"fmt"
+	"github.com/keniack/stardustGo/configs"
+	"github.com/keniack/stardustGo/internal/computing"
+	"github.com/keniack/stardustGo/internal/deployment"
+	"github.com/keniack/stardustGo/internal/node"
+	"github.com/keniack/stardustGo/internal/routing"
+	"github.com/keniack/stardustGo/pkg/types"
 	"log"
-	"stardustGo/configs"
-	"stardustGo/internal/computing"
-	"stardustGo/internal/deployment"
-	"stardustGo/internal/node"
-	"stardustGo/internal/routing"
-	"stardustGo/pkg/types"
 	"sync"
 	"time"
 )
@@ -57,16 +58,21 @@ func (s *SimulationService) Inject(o *deployment.DeploymentOrchestrator) {
 }
 
 // InjectSatellites adds the loaded satellites to the simulation scope
-func (s *SimulationService) InjectSatellites(satellites []*node.Satellite) error {
+func (s *SimulationService) InjectSatellites(satellites []types.INode) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	s.satellites = satellites
-	for _, sat := range satellites {
-		s.all = append(s.all, sat) // Add satellites as nodes
+	s.satellites = make([]*node.Satellite, 0, len(satellites))
+	for _, n := range satellites {
+		sat, ok := n.(*node.Satellite)
+		if !ok {
+			return fmt.Errorf("InjectSatellites: expected *node.Satellite but got %T", n)
+		}
+		s.satellites = append(s.satellites, sat)
+		s.all = append(s.all, sat) // Add satellites as generic nodes
 	}
 
-	log.Printf("Injected %d satellites into simulation", len(satellites))
+	log.Printf("Injected %d satellites into simulation", len(s.satellites))
 	return nil
 }
 
@@ -85,19 +91,17 @@ func (s *SimulationService) StopAsync() {
 	s.running = false
 }
 
-// StartAutorunAsync launches a timed simulation loop
-func (s *SimulationService) StartAutorunAsync() {
-	s.lock.Lock()
-	if s.autorun {
-		s.lock.Unlock()
-		return
-	}
-	s.autorun = true
-	s.lock.Unlock()
+func (s *SimulationService) StartAutorunAsync() <-chan struct{} {
+	done := make(chan struct{})
 
-	go s.runSimulationStep(func(prev time.Time) time.Time {
-		return prev.Add(time.Duration(s.config.StepMultiplier) * time.Second)
-	})
+	go func() {
+		s.runSimulationStep(func(prev time.Time) time.Time {
+			return prev.Add(time.Duration(s.config.StepMultiplier) * time.Second)
+		})
+		close(done) // closed when simulation loop exits
+	}()
+
+	return done
 }
 
 // StopAutorunAsync disables autorun mode

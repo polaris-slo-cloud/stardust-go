@@ -1,9 +1,9 @@
 package links
 
 import (
+	"github.com/keniack/stardustGo/configs"
+	"github.com/keniack/stardustGo/pkg/types"
 	"log"
-	"stardustGo/configs"
-	"stardustGo/pkg/types"
 )
 
 // IslProtocolBuilder constructs inter-satellite link protocols based on config

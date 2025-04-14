@@ -5,11 +5,11 @@ package satellite
 
 import (
 	"fmt"
+	"github.com/keniack/stardustGo/internal/node"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"stardustGo/internal/node"
 	"strings"
 )
 

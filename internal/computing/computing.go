@@ -2,11 +2,11 @@ package computing
 
 import (
 	"fmt"
-	"stardustGo/configs"
+	"github.com/keniack/stardustGo/configs"
 	"sync"
 	"time"
 
-	"stardustGo/pkg/types"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // Computing represents the computing resources of a node.

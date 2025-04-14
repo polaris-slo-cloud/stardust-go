@@ -4,9 +4,9 @@ import (
 	"errors"
 	"sync"
 
-	"stardustGo/configs"
-	linkmod "stardustGo/internal/links/linktypes"
-	"stardustGo/pkg/types"
+	"github.com/keniack/stardustGo/configs"
+	linkmod "github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // IslAddSmartLoopProtocol wraps another IInterSatelliteLinkProtocol and augments it

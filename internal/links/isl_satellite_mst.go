@@ -4,10 +4,10 @@ import (
 	"errors"
 	"sync"
 
-	"stardustGo/configs"
-	linkmod "stardustGo/internal/links/linktypes"
-	satmod "stardustGo/internal/node"
-	"stardustGo/pkg/types"
+	"github.com/keniack/stardustGo/configs"
+	linkmod "github.com/keniack/stardustGo/internal/links/linktypes"
+	satmod "github.com/keniack/stardustGo/internal/node"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // IslSatelliteCentricMstProtocol implements a satellite-centric MST algorithm

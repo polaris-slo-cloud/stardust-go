@@ -2,9 +2,9 @@ package links
 
 import (
 	"errors"
+	linkmod "github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/types"
 	"sort"
-	linkmod "stardustGo/internal/links/linktypes"
-	"stardustGo/pkg/types"
 	"sync"
 )
 

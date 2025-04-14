@@ -2,7 +2,9 @@ package configs
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -58,6 +60,30 @@ const (
 // String converts the ComputingType to a string representation.
 func (c ComputingType) String() string {
 	return [...]string{"None", "Edge", "Cloud", "Any"}[c]
+}
+
+func (c *ComputingType) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	switch strings.ToLower(s) {
+	case "none":
+		*c = None
+	case "edge":
+		*c = Edge
+	case "cloud":
+		*c = Cloud
+	case "any":
+		*c = Any
+	default:
+		return fmt.Errorf("unknown ComputingType: %s", s)
+	}
+	return nil
+}
+
+func (c ComputingType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.String())
 }
 
 func LoadConfig(path string) (*Config, error) {

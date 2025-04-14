@@ -1,11 +1,11 @@
 package satellite
 
 import (
-	"stardustGo/configs"
-	"stardustGo/internal/computing"
-	"stardustGo/internal/links"
-	"stardustGo/internal/node"
-	"stardustGo/internal/routing"
+	"github.com/keniack/stardustGo/configs"
+	"github.com/keniack/stardustGo/internal/computing"
+	"github.com/keniack/stardustGo/internal/links"
+	"github.com/keniack/stardustGo/internal/node"
+	"github.com/keniack/stardustGo/internal/routing"
 	"time"
 )
 

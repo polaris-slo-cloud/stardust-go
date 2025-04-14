@@ -2,8 +2,8 @@ package node
 
 import (
 	"errors"
+	"github.com/keniack/stardustGo/pkg/types"
 	"math"
-	"stardustGo/pkg/types"
 	"sync"
 	"time"
 )

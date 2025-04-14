@@ -2,7 +2,7 @@ package deployment
 
 import (
 	"errors"
-	"stardustGo/pkg/types"
+	"github.com/keniack/stardustGo/pkg/types"
 	"sync"
 )
 

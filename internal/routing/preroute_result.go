@@ -1,7 +1,7 @@
 package routing
 
 import (
-	"stardustGo/pkg/types"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 type PreRouteResult struct {

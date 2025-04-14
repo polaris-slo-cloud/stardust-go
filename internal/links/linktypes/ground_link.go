@@ -1,8 +1,8 @@
 package linktypes
 
 import (
-	"stardustGo/configs"
-	"stardustGo/pkg/types"
+	"github.com/keniack/stardustGo/configs"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 const groundSpeedOfLight = configs.SpeedOfLight * 0.98 // 98% of light speed

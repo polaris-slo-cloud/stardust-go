@@ -1,9 +1,9 @@
 package satellite
 
 import (
+	"github.com/keniack/stardustGo/configs"
+	"github.com/keniack/stardustGo/pkg/types"
 	"log"
-	"stardustGo/configs"
-	"stardustGo/pkg/types"
 )
 
 // LoaderService wires the constellation loader and triggers simulation startup.
@@ -49,11 +49,11 @@ func (s *LoaderService) Start() error {
 	}
 
 	// Convert []*node.Satellite to []*types.INode
-	var nodes []*types.INode
+	var nodes []types.INode
 	for _, satellite := range satellites {
 		// Append the pointer to the slice
 		node := types.INode(satellite) // Convert *node.Satellite to *types.INode
-		nodes = append(nodes, &node)   // Append pointer to slice
+		nodes = append(nodes, node)    // Append pointer to slice
 	}
 
 	log.Printf("Injecting %d satellites into simulation", len(satellites))

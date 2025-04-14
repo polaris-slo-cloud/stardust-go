@@ -5,8 +5,8 @@ import (
 	"sort"
 	"sync"
 
-	"stardustGo/internal/links/linktypes"
-	"stardustGo/pkg/types"
+	"github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // GroundSatelliteNearestProtocol maintains a single active link from the ground station

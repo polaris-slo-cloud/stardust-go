@@ -1,7 +1,7 @@
 package computing
 
 import (
-	"stardustGo/configs"
+	"github.com/keniack/stardustGo/configs"
 )
 
 // IComputingBuilder is the interface for building Computing instances.
