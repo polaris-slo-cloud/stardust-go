@@ -1,6 +1,5 @@
 # StardustGo
-A simulator for the 3D Continuum — written in Go.
-
+A simulator for the 3D Continuum
 ## Overview
 StardustGo is a modular, extensible simulation framework for modeling and analyzing space-ground computing constellations. It includes abstractions for routing, inter-satellite link (ISL) protocols, satellite dynamics, and orchestrated deployments.
 
