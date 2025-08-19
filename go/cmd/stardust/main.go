@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/computing"
@@ -12,8 +13,14 @@ import (
 )
 
 func main() {
+
+	if len(os.Args) != 2 {
+		log.Fatalf("Usage: %s <configFile>", os.Args[0])
+	}
+	configFile := os.Args[1]
+
 	// Step 1: Load application configuration (from configs/appsettings.json)
-	cfg, err := configs.LoadConfig("configs/appsettings.json")
+	cfg, err := configs.LoadConfig(configFile)
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
