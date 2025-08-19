@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -45,7 +46,7 @@ func main() {
 	simService.Inject(orchestrator)
 
 	// Step 7: Load satellites using the loader service
-	loaderService := satellite.NewLoaderService(cfg.ISL, satBuilder, constellationLoader, simService, "resources/tle/starlink_500.tle", "tle")
+	loaderService := satellite.NewLoaderService(cfg.ISL, satBuilder, constellationLoader, simService, fmt.Sprintf("./resources/%s/%s", cfg.Simulation.SatelliteDataSourceType, cfg.Simulation.SatelliteDataSource), cfg.Simulation.SatelliteDataSourceType)
 	if err := loaderService.Start(); err != nil {
 		log.Fatalf("Failed to load satellites: %v", err)
 	}
