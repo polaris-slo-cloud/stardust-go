@@ -11,7 +11,7 @@
       "mode": "auto",
       "program": "${workspaceFolder}/go/cmd/stardust",
       "cwd": "${workspaceFolder}/go",
-      "args": ["./configs/appsettings.json"],
+      "args": ["./configs/appsettings.yaml"],
     }
   ]
 }

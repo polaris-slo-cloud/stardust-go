@@ -21,7 +21,7 @@ func main() {
 	configFile := os.Args[1]
 
 	// Step 1: Load application configuration (from configs/appsettings.json)
-	cfg, err := configs.LoadConfig(configFile)
+	cfg, err := configs.LoadConfigFromFile(configFile)
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
