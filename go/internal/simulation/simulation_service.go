@@ -2,15 +2,16 @@ package simulation
 
 import (
 	"fmt"
+	"log"
+	"sync"
+	"time"
+
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/computing"
 	"github.com/keniack/stardustGo/internal/deployment"
 	"github.com/keniack/stardustGo/internal/node"
 	"github.com/keniack/stardustGo/internal/routing"
 	"github.com/keniack/stardustGo/pkg/types"
-	"log"
-	"sync"
-	"time"
 )
 
 // SimulationService handles simulation lifecycle and state updates
@@ -19,7 +20,7 @@ type SimulationService struct {
 	routerBuilder    *routing.RouterBuilder
 	computingBuilder *computing.ComputingBuilder
 
-	all         []types.INode
+	all         []types.Node
 	satellites  []*node.Satellite
 	groundNodes []*node.GroundStation
 	simTime     time.Time
@@ -41,7 +42,7 @@ func NewSimulationService(
 		config:           config,
 		routerBuilder:    router,
 		computingBuilder: computing,
-		all:              []types.INode{},
+		all:              []types.Node{},
 		satellites:       []*node.Satellite{},
 		groundNodes:      []*node.GroundStation{},
 		simTime:          config.SimulationStartTime,
@@ -58,7 +59,7 @@ func (s *SimulationService) Inject(o *deployment.DeploymentOrchestrator) {
 }
 
 // InjectSatellites adds the loaded satellites to the simulation scope
-func (s *SimulationService) InjectSatellites(satellites []types.INode) error {
+func (s *SimulationService) InjectSatellites(satellites []types.Node) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -137,7 +138,7 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 		var wg sync.WaitGroup
 		for _, n := range s.all {
 			wg.Add(1)
-			go func(n types.INode) {
+			go func(n types.Node) {
 				defer wg.Done()
 				n.UpdatePosition(s.simTime) // Update each node's position
 			}(n)

@@ -2,9 +2,10 @@ package computing
 
 import (
 	"fmt"
-	"github.com/keniack/stardustGo/configs"
 	"sync"
 	"time"
+
+	"github.com/keniack/stardustGo/configs"
 
 	"github.com/keniack/stardustGo/pkg/types"
 )
@@ -18,7 +19,7 @@ type Computing struct {
 	MemoryUsage float64                    // Current memory usage
 	Services    []types.IDeployableService // List of deployed services (using IDeployedService)
 	mu          sync.Mutex                 // Mutex to ensure thread safety
-	node        *types.INode               // Node to which this computing is mounted
+	node        *types.Node                // Node to which this computing is mounted
 }
 
 func (c *Computing) GetServices() []types.IDeployableService {
@@ -36,7 +37,7 @@ func NewComputing(cpu, memory float64, ctype configs.ComputingType) *Computing {
 }
 
 // Mount attaches this computing unit to a node
-func (c *Computing) Mount(node *types.INode) error {
+func (c *Computing) Mount(node *types.Node) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -131,7 +132,7 @@ func (c *Computing) MemoryAvailable() float64 {
 }
 
 // Clone creates a new copy of the current computing unit and returns it as IComputing.
-func (c *Computing) Clone() types.IComputing {
+func (c *Computing) Clone() types.Computing {
 	// Clone each deployed service
 	servicesClone := make([]types.IDeployableService, len(c.Services))
 	copy(servicesClone, c.Services)

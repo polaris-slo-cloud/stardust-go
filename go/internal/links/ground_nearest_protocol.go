@@ -13,20 +13,20 @@ import (
 // to the nearest satellite at any given time.
 type GroundSatelliteNearestProtocol struct {
 	link          *linktypes.GroundLink // Current active ground link
-	satellites    []types.INode         // Available satellites
-	groundStation types.INode           // The ground station node
+	satellites    []types.Node          // Available satellites
+	groundStation types.Node            // The ground station node
 	mu            sync.Mutex
 }
 
 // NewGroundSatelliteNearestProtocol creates a new protocol with an initial list of satellites.
-func NewGroundSatelliteNearestProtocol(satellites []types.INode) *GroundSatelliteNearestProtocol {
+func NewGroundSatelliteNearestProtocol(satellites []types.Node) *GroundSatelliteNearestProtocol {
 	return &GroundSatelliteNearestProtocol{
 		satellites: satellites,
 	}
 }
 
 // Mount binds this protocol to a ground station.
-func (p *GroundSatelliteNearestProtocol) Mount(gs types.INode) {
+func (p *GroundSatelliteNearestProtocol) Mount(gs types.Node) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.groundStation == nil {
@@ -35,30 +35,30 @@ func (p *GroundSatelliteNearestProtocol) Mount(gs types.INode) {
 }
 
 // AddLink is a no-op for this protocol.
-func (p *GroundSatelliteNearestProtocol) AddLink(link types.ILink) {}
+func (p *GroundSatelliteNearestProtocol) AddLink(link types.Link) {}
 
 // ConnectLink is a no-op for this protocol.
-func (p *GroundSatelliteNearestProtocol) ConnectLink(link types.ILink) error {
+func (p *GroundSatelliteNearestProtocol) ConnectLink(link types.Link) error {
 	return nil
 }
 
 // DisconnectLink is a no-op for this protocol.
-func (p *GroundSatelliteNearestProtocol) DisconnectLink(link types.ILink) error {
+func (p *GroundSatelliteNearestProtocol) DisconnectLink(link types.Link) error {
 	return nil
 }
 
 // ConnectSatellite is not used in this context.
-func (p *GroundSatelliteNearestProtocol) ConnectSatellite(s types.INode) error {
+func (p *GroundSatelliteNearestProtocol) ConnectSatellite(s types.Node) error {
 	return nil
 }
 
 // DisconnectSatellite is not used in this context.
-func (p *GroundSatelliteNearestProtocol) DisconnectSatellite(s types.INode) error {
+func (p *GroundSatelliteNearestProtocol) DisconnectSatellite(s types.Node) error {
 	return nil
 }
 
 // UpdateLinks selects the closest satellite and sets up the ground link accordingly.
-func (p *GroundSatelliteNearestProtocol) UpdateLinks() ([]types.ILink, error) {
+func (p *GroundSatelliteNearestProtocol) UpdateLinks() ([]types.Link, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -75,39 +75,39 @@ func (p *GroundSatelliteNearestProtocol) UpdateLinks() ([]types.ILink, error) {
 
 	nearest := p.satellites[0]
 	if nearest == nil || (p.link != nil && p.link.Satellite.GetName() == nearest.GetName()) {
-		return []types.ILink{p.link}, nil // Already linked to the nearest
+		return []types.Link{p.link}, nil // Already linked to the nearest
 	}
 
 	old := p.link
 	p.link = linktypes.NewGroundLink(p.groundStation, nearest)
 
 	// Add new link to satellite if it supports ground links
-	if s, ok := nearest.(interface{ AddGroundLink(link types.ILink) }); ok {
+	if s, ok := nearest.(interface{ AddGroundLink(link types.Link) }); ok {
 		s.AddGroundLink(p.link)
 	}
 
 	// Remove old link from previous satellite if supported
 	if old != nil {
-		if oldSat, ok := old.Satellite.(interface{ RemoveGroundLink(station types.INode) }); ok {
+		if oldSat, ok := old.Satellite.(interface{ RemoveGroundLink(station types.Node) }); ok {
 			oldSat.RemoveGroundLink(p.groundStation)
 		}
 	}
 
-	return []types.ILink{p.link}, nil
+	return []types.Link{p.link}, nil
 }
 
 // Links returns the current active link if any.
-func (p *GroundSatelliteNearestProtocol) Links() []types.ILink {
+func (p *GroundSatelliteNearestProtocol) Links() []types.Link {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.link != nil {
-		return []types.ILink{p.link}
+		return []types.Link{p.link}
 	}
 	return nil
 }
 
 // Established returns the current active link if any.
-func (p *GroundSatelliteNearestProtocol) Established() []types.ILink {
+func (p *GroundSatelliteNearestProtocol) Established() []types.Link {
 	return p.Links()
 }
 
@@ -119,19 +119,19 @@ func (p *GroundSatelliteNearestProtocol) Link() *linktypes.GroundLink {
 }
 
 // AddSatellite adds a satellite to the trackable list.
-func (p *GroundSatelliteNearestProtocol) AddSatellite(sat types.INode) {
+func (p *GroundSatelliteNearestProtocol) AddSatellite(sat types.Node) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.satellites = append(p.satellites, sat)
 }
 
 // RemoveSatellite removes a satellite from the list and resets the link if needed.
-func (p *GroundSatelliteNearestProtocol) RemoveSatellite(sat types.INode) {
+func (p *GroundSatelliteNearestProtocol) RemoveSatellite(sat types.Node) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	// Filter out the satellite
-	filtered := make([]types.INode, 0, len(p.satellites))
+	filtered := make([]types.Node, 0, len(p.satellites))
 	for _, s := range p.satellites {
 		if s.GetName() != sat.GetName() {
 			filtered = append(filtered, s)
@@ -141,7 +141,7 @@ func (p *GroundSatelliteNearestProtocol) RemoveSatellite(sat types.INode) {
 
 	// Remove the link if it's pointing to the removed satellite
 	if p.link != nil && p.link.Satellite.GetName() == sat.GetName() {
-		if removable, ok := sat.(interface{ RemoveGroundLink(types.INode) }); ok {
+		if removable, ok := sat.(interface{ RemoveGroundLink(types.Node) }); ok {
 			removable.RemoveGroundLink(p.groundStation)
 		}
 		p.link = nil

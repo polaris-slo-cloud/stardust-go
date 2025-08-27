@@ -2,8 +2,9 @@ package routing
 
 import (
 	"fmt"
-	"github.com/keniack/stardustGo/pkg/types"
 	"strings"
+
+	"github.com/keniack/stardustGo/pkg/types"
 
 	"github.com/keniack/stardustGo/configs"
 )
@@ -25,7 +26,7 @@ func NewRouterBuilder(cfg configs.RouterConfig) *RouterBuilder {
 }
 
 // Build creates an IRouter implementation based on config.
-func (b *RouterBuilder) Build() (types.IRouter, error) {
+func (b *RouterBuilder) Build() (types.Router, error) {
 	switch strings.ToLower(b.Config.Protocol) {
 	case Dijkstra:
 		return NewDijkstraRouter(), nil

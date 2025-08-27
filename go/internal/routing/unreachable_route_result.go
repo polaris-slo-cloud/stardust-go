@@ -18,6 +18,6 @@ func (r *UnreachableRouteResult) WaitLatencyAsync() error {
 	return nil
 }
 
-func (r *UnreachableRouteResult) AddCalculationDuration(ms int) types.IRouteResult {
+func (r *UnreachableRouteResult) AddCalculationDuration(ms int) types.RouteResult {
 	return r
 }

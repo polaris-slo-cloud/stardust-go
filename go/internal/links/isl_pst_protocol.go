@@ -2,10 +2,11 @@ package links
 
 import (
 	"errors"
-	linkmod "github.com/keniack/stardustGo/internal/links/linktypes"
-	"github.com/keniack/stardustGo/pkg/types"
 	"sort"
 	"sync"
+
+	linkmod "github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // IslPstProtocol implements a link selection strategy inspired by partial spanning trees (PST).
@@ -15,9 +16,9 @@ type IslPstProtocol struct {
 	setLink     map[*linkmod.IslLink]struct{} // All candidate links seen by the protocol
 	established []*linkmod.IslLink            // Currently active links
 
-	satellite      types.INode                 // The satellite this protocol is mounted to
-	satellites     []types.NodeWithISL         // All reachable satellites
-	representative map[types.INode]types.INode // Union-find mapping for MST cycles
+	satellite      types.Node                // The satellite this protocol is mounted to
+	satellites     []types.NodeWithISL       // All reachable satellites
+	representative map[types.Node]types.Node // Union-find mapping for MST cycles
 
 	position types.Vector  // Last position we calculated for
 	mu       sync.Mutex    // Protects concurrent access
@@ -29,20 +30,20 @@ func NewIslPstProtocol() *IslPstProtocol {
 	return &IslPstProtocol{
 		setLink:        make(map[*linkmod.IslLink]struct{}),
 		established:    []*linkmod.IslLink{},
-		representative: make(map[types.INode]types.INode),
+		representative: make(map[types.Node]types.Node),
 		readyCh:        make(chan struct{}, 1),
 	}
 }
 
 // Mount assigns this protocol to a given satellite
-func (p *IslPstProtocol) Mount(s types.INode) {
+func (p *IslPstProtocol) Mount(s types.Node) {
 	if p.satellite == nil {
 		p.satellite = s
 	}
 }
 
 // AddLink registers a new candidate link to the protocol's pool
-func (p *IslPstProtocol) AddLink(link types.ILink) {
+func (p *IslPstProtocol) AddLink(link types.Link) {
 	if isl, ok := link.(*linkmod.IslLink); ok {
 		p.mu.Lock()
 		defer p.mu.Unlock()
@@ -51,7 +52,7 @@ func (p *IslPstProtocol) AddLink(link types.ILink) {
 }
 
 // ConnectLink adds a link to the active set if not already connected
-func (p *IslPstProtocol) ConnectLink(link types.ILink) error {
+func (p *IslPstProtocol) ConnectLink(link types.Link) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if isl, ok := link.(*linkmod.IslLink); ok {
@@ -66,7 +67,7 @@ func (p *IslPstProtocol) ConnectLink(link types.ILink) error {
 }
 
 // DisconnectLink removes a link from the active set
-func (p *IslPstProtocol) DisconnectLink(link types.ILink) error {
+func (p *IslPstProtocol) DisconnectLink(link types.Link) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if isl, ok := link.(*linkmod.IslLink); ok {
@@ -81,17 +82,17 @@ func (p *IslPstProtocol) DisconnectLink(link types.ILink) error {
 }
 
 // ConnectSatellite is a stub
-func (p *IslPstProtocol) ConnectSatellite(s types.INode) error {
+func (p *IslPstProtocol) ConnectSatellite(s types.Node) error {
 	return errors.New("ConnectSatellite not implemented")
 }
 
 // DisconnectSatellite is a stub
-func (p *IslPstProtocol) DisconnectSatellite(s types.INode) error {
+func (p *IslPstProtocol) DisconnectSatellite(s types.Node) error {
 	return errors.New("DisconnectSatellite not implemented")
 }
 
 // UpdateLinks recalculates which links to establish using a distributed MST-style heuristic
-func (p *IslPstProtocol) UpdateLinks() ([]types.ILink, error) {
+func (p *IslPstProtocol) UpdateLinks() ([]types.Link, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -104,7 +105,7 @@ func (p *IslPstProtocol) UpdateLinks() ([]types.ILink, error) {
 		case <-p.readyCh:
 		default:
 		}
-		links := make([]types.ILink, len(p.established))
+		links := make([]types.Link, len(p.established))
 		for i, l := range p.established {
 			links[i] = l
 		}
@@ -112,7 +113,7 @@ func (p *IslPstProtocol) UpdateLinks() ([]types.ILink, error) {
 	}
 	p.position = p.satellite.PositionVector()
 
-	satSet := make(map[types.INode]bool)
+	satSet := make(map[types.Node]bool)
 	for l := range p.setLink {
 		satSet[l.Node1] = true
 		satSet[l.Node2] = true
@@ -126,7 +127,7 @@ func (p *IslPstProtocol) UpdateLinks() ([]types.ILink, error) {
 	}
 
 	maxLinks := 4
-	nodes := map[types.INode]int{}
+	nodes := map[types.Node]int{}
 	mstLinks := []*linkmod.IslLink{}
 
 	for _, sat := range p.satellites {
@@ -175,7 +176,7 @@ func (p *IslPstProtocol) UpdateLinks() ([]types.ILink, error) {
 	default:
 	}
 
-	links := make([]types.ILink, len(mstLinks))
+	links := make([]types.Link, len(mstLinks))
 	for i, l := range mstLinks {
 		links[i] = l
 	}
@@ -183,10 +184,10 @@ func (p *IslPstProtocol) UpdateLinks() ([]types.ILink, error) {
 }
 
 // Links returns all registered candidate links
-func (p *IslPstProtocol) Links() []types.ILink {
+func (p *IslPstProtocol) Links() []types.Link {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	res := []types.ILink{}
+	res := []types.Link{}
 	for l := range p.setLink {
 		res = append(res, l)
 	}
@@ -194,10 +195,10 @@ func (p *IslPstProtocol) Links() []types.ILink {
 }
 
 // Established returns the list of currently active links
-func (p *IslPstProtocol) Established() []types.ILink {
+func (p *IslPstProtocol) Established() []types.Link {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	res := make([]types.ILink, len(p.established))
+	res := make([]types.Link, len(p.established))
 	for i, l := range p.established {
 		res[i] = l
 	}
@@ -205,7 +206,7 @@ func (p *IslPstProtocol) Established() []types.ILink {
 }
 
 // getRepresentative returns the root representative for a satellite using path compression
-func getRepresentative(reps map[types.INode]types.INode, sat types.INode) types.INode {
+func getRepresentative(reps map[types.Node]types.Node, sat types.Node) types.Node {
 	cur := sat
 	for reps[cur] != cur {
 		cur = reps[cur]

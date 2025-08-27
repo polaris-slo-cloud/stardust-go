@@ -1,9 +1,9 @@
 package types
 
-// IComputing is an interface for computing resources, including managing services, available resources, and service placement.
-type IComputing interface {
+// Computing is an interface for computing resources, including managing services, available resources, and service placement.
+type Computing interface {
 	// Mount attaches the computing unit to a node
-	Mount(node *INode) error
+	Mount(node *Node) error
 
 	// TryPlaceDeploymentAsync tries to place a service on this computing unit
 	TryPlaceDeploymentAsync(service IDeployableService) (bool, error)
@@ -24,7 +24,7 @@ type IComputing interface {
 	MemoryAvailable() float64
 
 	// Clone creates a new copy of the current computing unit
-	Clone() IComputing
+	Clone() Computing
 
 	// GetServices returns the list of deployed services
 	GetServices() []IDeployableService

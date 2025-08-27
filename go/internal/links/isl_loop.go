@@ -22,47 +22,47 @@ func NewIslAddLoopProtocol(inner types.IInterSatelliteLinkProtocol, cfg configs.
 }
 
 // Mount delegates mounting to the wrapped protocol.
-func (p *IslAddLoopProtocol) Mount(s types.INode) {
+func (p *IslAddLoopProtocol) Mount(s types.Node) {
 	p.inner.Mount(s)
 }
 
 // AddLink delegates link registration to the wrapped protocol.
-func (p *IslAddLoopProtocol) AddLink(link types.ILink) {
+func (p *IslAddLoopProtocol) AddLink(link types.Link) {
 	p.inner.AddLink(link)
 }
 
 // ConnectLink delegates connection to the wrapped protocol.
-func (p *IslAddLoopProtocol) ConnectLink(link types.ILink) error {
+func (p *IslAddLoopProtocol) ConnectLink(link types.Link) error {
 	return p.inner.ConnectLink(link)
 }
 
 // DisconnectLink delegates disconnection to the wrapped protocol.
-func (p *IslAddLoopProtocol) DisconnectLink(link types.ILink) error {
+func (p *IslAddLoopProtocol) DisconnectLink(link types.Link) error {
 	return p.inner.DisconnectLink(link)
 }
 
 // ConnectSatellite delegates to the wrapped protocol.
-func (p *IslAddLoopProtocol) ConnectSatellite(s types.INode) error {
+func (p *IslAddLoopProtocol) ConnectSatellite(s types.Node) error {
 	return p.inner.ConnectSatellite(s)
 }
 
 // DisconnectSatellite delegates to the wrapped protocol.
-func (p *IslAddLoopProtocol) DisconnectSatellite(s types.INode) error {
+func (p *IslAddLoopProtocol) DisconnectSatellite(s types.Node) error {
 	return p.inner.DisconnectSatellite(s)
 }
 
 // Links returns all *IslLink links from the wrapped protocol.
-func (p *IslAddLoopProtocol) Links() []types.ILink {
+func (p *IslAddLoopProtocol) Links() []types.Link {
 	return p.inner.Links()
 }
 
 // Established returns all active *IslLink connections.
-func (p *IslAddLoopProtocol) Established() []types.ILink {
+func (p *IslAddLoopProtocol) Established() []types.Link {
 	return p.inner.Established()
 }
 
 // UpdateLinks adds one additional loop link if there are too few established connections.
-func (p *IslAddLoopProtocol) UpdateLinks() ([]types.ILink, error) {
+func (p *IslAddLoopProtocol) UpdateLinks() ([]types.Link, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -119,7 +119,7 @@ func (p *IslAddLoopProtocol) UpdateLinks() ([]types.ILink, error) {
 	}
 
 	// Return as []types.ILink
-	out := make([]types.ILink, len(established))
+	out := make([]types.Link, len(established))
 	for i, l := range established {
 		out[i] = l
 	}
@@ -137,6 +137,6 @@ func contains(list []*linktypes.IslLink, link *linktypes.IslLink) bool {
 }
 
 // shouldLoop returns true if the node has fewer than the maximum allowed neighbors.
-func shouldLoop(established []types.ILink, max int) bool {
+func shouldLoop(established []types.Link, max int) bool {
 	return len(established) < max
 }

@@ -1,16 +1,19 @@
 package node
 
 import (
-	"github.com/keniack/stardustGo/internal/links/linktypes"
-	"github.com/keniack/stardustGo/pkg/types"
 	"math"
 	"sync"
 	"time"
+
+	"github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/types"
 )
+
+var _ types.Node = (*Satellite)(nil) // Ensure Satellite implements Node
 
 // Satellite represents a single satellite node in the simulation.
 type Satellite struct {
-	Node // Embedding Node struct to satisfy the Node interface
+	BaseNode // Embedding Node struct to satisfy the Node interface
 
 	Inclination          float64
 	InclinationRad       float64
@@ -24,18 +27,18 @@ type Satellite struct {
 	SemiMajorAxis        float64
 	Epoch                time.Time
 	ISLProtocol          types.IInterSatelliteLinkProtocol
-	GroundLinks          []types.ILink
+	GroundLinks          []types.Link
 	Position             types.Vector
 }
 
 // NewSatellite initializes a new Satellite object with orbital configuration and ISL protocol.
-func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, meanMotion float64, epoch time.Time, simTime time.Time, isl types.IInterSatelliteLinkProtocol, router types.IRouter, computing types.IComputing) *Satellite {
+func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, meanMotion float64, epoch time.Time, simTime time.Time, isl types.IInterSatelliteLinkProtocol, router types.Router, computing types.Computing) *Satellite {
 	inclRad := types.DegreesToRadians(inclination)
 	raanRad := types.DegreesToRadians(raan)
 	argPerigeeRad := types.DegreesToRadians(argPerigee)
 
 	s := &Satellite{
-		Node:                 Node{Name: name, Router: router, Computing: computing}, // Embedding Node struct
+		BaseNode:             BaseNode{Name: name, Router: router, Computing: computing}, // Embedding Node struct
 		Inclination:          inclination,
 		InclinationRad:       inclRad,
 		RightAscension:       raan,
@@ -47,7 +50,7 @@ func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, 
 		MeanMotion:           meanMotion,
 		Epoch:                epoch,
 		ISLProtocol:          isl,
-		GroundLinks:          []types.ILink{},
+		GroundLinks:          []types.Link{},
 	}
 
 	isl.Mount(s)
@@ -55,7 +58,7 @@ func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, 
 	return s
 }
 
-// Implementing INode methods via the embedded Node struct
+// Implementing Node methods via the embedded Node struct
 
 // GetName returns the name of the satellite (from Node)
 func (s *Satellite) GetName() string {
@@ -68,18 +71,18 @@ func (s *Satellite) PositionVector() types.Vector {
 }
 
 // DistanceTo calculates the distance between this satellite and another node (satellite or ground station)
-func (s *Satellite) DistanceTo(other types.INode) float64 {
+func (s *Satellite) DistanceTo(other types.Node) float64 {
 	return s.Position.Sub(other.PositionVector()).Magnitude()
 }
 
-func (s *Satellite) GetComputing() types.IComputing {
+func (s *Satellite) GetComputing() types.Computing {
 	return s.Computing
 }
 
 // GetLinks returns all links connected to the satellite (both ISL and ground links)
-func (s *Satellite) GetLinks() []types.ILink {
+func (s *Satellite) GetLinks() []types.Link {
 	// Combine inter-satellite links and ground links
-	var allLinks []types.ILink
+	var allLinks []types.Link
 
 	// Add inter-satellite links (ISL links)
 	for _, link := range s.ISLProtocol.Links() {

@@ -2,10 +2,11 @@ package node
 
 import (
 	"errors"
-	"github.com/keniack/stardustGo/pkg/types"
 	"math"
 	"sync"
 	"time"
+
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // GroundSatelliteLinkProtocol defines the interface for managing ground-to-satellite link behavior
@@ -24,7 +25,7 @@ type Link struct {
 // It updates its position over time and tracks the nearest satellites
 
 type GroundStation struct {
-	Node
+	BaseNode
 
 	Latitude                    float64
 	Longitude                   float64
@@ -36,9 +37,9 @@ type GroundStation struct {
 }
 
 // NewGroundStation creates and initializes a new ground station with link protocol and position
-func NewGroundStation(name string, lon, lat float64, link GroundSatelliteLinkProtocol, simStart time.Time, router types.IRouter, computing types.IComputing) *GroundStation {
+func NewGroundStation(name string, lon, lat float64, link GroundSatelliteLinkProtocol, simStart time.Time, router types.Router, computing types.Computing) *GroundStation {
 	gs := &GroundStation{
-		Node: Node{
+		BaseNode: BaseNode{
 			Name:      name,
 			Router:    router,
 			Computing: computing,
@@ -61,7 +62,7 @@ func (gs *GroundStation) PositionVector() types.Vector {
 	return gs.Position
 }
 
-func (gs *GroundStation) DistanceTo(other types.INode) float64 {
+func (gs *GroundStation) DistanceTo(other types.Node) float64 {
 	return gs.Position.Sub(other.PositionVector()).Magnitude()
 }
 

@@ -9,13 +9,13 @@ const speedOfLight = configs.SpeedOfLight * 0.99 // 99% of light speed
 
 // IslLink represents an inter-satellite laser link.
 type IslLink struct {
-	Node1         types.INode
-	Node2         types.INode
+	Node1         types.Node
+	Node2         types.Node
 	isEstablished bool
 }
 
 // NewIslLink creates a new ISL between two nodes.
-func NewIslLink(n1, n2 types.INode) *IslLink {
+func NewIslLink(n1, n2 types.Node) *IslLink {
 	return &IslLink{
 		Node1: n1,
 		Node2: n2,
@@ -48,7 +48,7 @@ func (l *IslLink) IsReachable() bool {
 }
 
 // GetOther returns the opposite node of the link.
-func (l *IslLink) GetOther(self types.INode) types.INode {
+func (l *IslLink) GetOther(self types.Node) types.Node {
 	if self.GetName() == l.Node1.GetName() {
 		return l.Node2
 	}
@@ -58,7 +58,7 @@ func (l *IslLink) GetOther(self types.INode) types.INode {
 	return nil
 }
 
-func (l *IslLink) Involves(node types.INode) bool {
+func (l *IslLink) Involves(node types.Node) bool {
 	return l.Node1.GetName() == node.GetName() || l.Node2.GetName() == node.GetName()
 }
 

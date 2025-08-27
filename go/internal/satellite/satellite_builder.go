@@ -1,12 +1,13 @@
 package satellite
 
 import (
+	"time"
+
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/computing"
 	"github.com/keniack/stardustGo/internal/links"
 	"github.com/keniack/stardustGo/internal/node"
 	"github.com/keniack/stardustGo/internal/routing"
-	"time"
 )
 
 // SatelliteBuilder helps construct Satellite instances with ISL, routing, and computing configuration.

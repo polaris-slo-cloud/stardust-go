@@ -15,8 +15,8 @@ import (
 type IslMstProtocol struct {
 	setLink         map[*linktypes.IslLink]bool // All candidate links
 	established     []*linktypes.IslLink        // Currently active MST links
-	satellite       types.INode                 // Local satellite
-	satellites      []types.INode               // All satellites involved
+	satellite       types.Node                  // Local satellite
+	satellites      []types.Node                // All satellites involved
 	representatives map[string]string           // Disjoint-set forest (by node name)
 
 	position types.Vector // Last position when links were updated
@@ -35,7 +35,7 @@ func NewIslMstProtocol() *IslMstProtocol {
 }
 
 // Mount assigns this protocol to a local satellite.
-func (p *IslMstProtocol) Mount(s types.INode) {
+func (p *IslMstProtocol) Mount(s types.Node) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.satellite == nil {
@@ -44,7 +44,7 @@ func (p *IslMstProtocol) Mount(s types.INode) {
 }
 
 // AddLink registers a new candidate link.
-func (p *IslMstProtocol) AddLink(link types.ILink) {
+func (p *IslMstProtocol) AddLink(link types.Link) {
 	if isl, ok := link.(*linktypes.IslLink); ok {
 		p.mu.Lock()
 		defer p.mu.Unlock()
@@ -53,7 +53,7 @@ func (p *IslMstProtocol) AddLink(link types.ILink) {
 }
 
 // ConnectLink adds a link to the established set if not already present.
-func (p *IslMstProtocol) ConnectLink(link types.ILink) error {
+func (p *IslMstProtocol) ConnectLink(link types.Link) error {
 	if isl, ok := link.(*linktypes.IslLink); ok {
 		p.mu.Lock()
 		defer p.mu.Unlock()
@@ -68,7 +68,7 @@ func (p *IslMstProtocol) ConnectLink(link types.ILink) error {
 }
 
 // DisconnectLink removes a link from the established set.
-func (p *IslMstProtocol) DisconnectLink(link types.ILink) error {
+func (p *IslMstProtocol) DisconnectLink(link types.Link) error {
 	if isl, ok := link.(*linktypes.IslLink); ok {
 		p.mu.Lock()
 		defer p.mu.Unlock()
@@ -83,7 +83,7 @@ func (p *IslMstProtocol) DisconnectLink(link types.ILink) error {
 }
 
 // UpdateLinks builds a new MST if the satellite's position has changed.
-func (p *IslMstProtocol) UpdateLinks() ([]types.ILink, error) {
+func (p *IslMstProtocol) UpdateLinks() ([]types.Link, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -97,7 +97,7 @@ func (p *IslMstProtocol) UpdateLinks() ([]types.ILink, error) {
 		case <-p.readyCh:
 		default:
 		}
-		result := make([]types.ILink, len(p.established))
+		result := make([]types.Link, len(p.established))
 		for i, l := range p.established {
 			result[i] = l
 		}
@@ -106,12 +106,12 @@ func (p *IslMstProtocol) UpdateLinks() ([]types.ILink, error) {
 	p.position = p.satellite.PositionVector()
 
 	// Collect all satellites from links
-	satMap := map[string]types.INode{}
+	satMap := map[string]types.Node{}
 	for l := range p.setLink {
 		satMap[l.Node1.GetName()] = l.Node1
 		satMap[l.Node2.GetName()] = l.Node2
 	}
-	p.satellites = make([]types.INode, 0, len(satMap))
+	p.satellites = make([]types.Node, 0, len(satMap))
 	for _, sat := range satMap {
 		p.satellites = append(p.satellites, sat)
 		p.representatives[sat.GetName()] = sat.GetName()
@@ -172,7 +172,7 @@ func (p *IslMstProtocol) UpdateLinks() ([]types.ILink, error) {
 	default:
 	}
 
-	result := make([]types.ILink, len(mst))
+	result := make([]types.Link, len(mst))
 	for i, l := range mst {
 		result[i] = l
 	}
@@ -188,20 +188,20 @@ func (p *IslMstProtocol) getRepresentative(name string) string {
 }
 
 // ConnectSatellite is not implemented in this strategy.
-func (p *IslMstProtocol) ConnectSatellite(types.INode) error {
+func (p *IslMstProtocol) ConnectSatellite(types.Node) error {
 	return errors.New("ConnectSatellite not implemented")
 }
 
 // DisconnectSatellite is not implemented in this strategy.
-func (p *IslMstProtocol) DisconnectSatellite(types.INode) error {
+func (p *IslMstProtocol) DisconnectSatellite(types.Node) error {
 	return errors.New("DisconnectSatellite not implemented")
 }
 
 // Links returns a snapshot of all known candidate links.
-func (p *IslMstProtocol) Links() []types.ILink {
+func (p *IslMstProtocol) Links() []types.Link {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	result := make([]types.ILink, 0, len(p.setLink))
+	result := make([]types.Link, 0, len(p.setLink))
 	for l := range p.setLink {
 		result = append(result, l)
 	}
@@ -209,10 +209,10 @@ func (p *IslMstProtocol) Links() []types.ILink {
 }
 
 // Established returns all currently active MST links.
-func (p *IslMstProtocol) Established() []types.ILink {
+func (p *IslMstProtocol) Established() []types.Link {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	result := make([]types.ILink, len(p.established))
+	result := make([]types.Link, len(p.established))
 	for i, l := range p.established {
 		result[i] = l
 	}

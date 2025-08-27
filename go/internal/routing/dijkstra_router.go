@@ -2,36 +2,37 @@ package routing
 
 import (
 	"errors"
+	"sort"
+
 	"github.com/keniack/stardustGo/internal/links/linktypes"
 	"github.com/keniack/stardustGo/pkg/types"
-	"sort"
 )
 
 // DijkstraRouter implements shortest-path routing using Dijkstra's algorithm
 // and supports precomputed routing tables.
 type DijkstraRouter struct {
-	self     types.INode
-	routes   map[types.INode]routeEntry
+	self     types.Node
+	routes   map[types.Node]routeEntry
 	services map[string]routeEntry
 	comparer func(a, b dijkstraEntry) bool
 }
 
 type routeEntry struct {
-	OutLink types.ILink
-	Route   types.IRouteResult
+	OutLink types.Link
+	Route   types.RouteResult
 }
 
 type dijkstraEntry struct {
-	Link    types.ILink
-	Target  types.INode
-	Via     types.ILink
+	Link    types.Link
+	Target  types.Node
+	Via     types.Link
 	Latency float64
 }
 
 // NewDijkstraRouter creates a new Dijkstra-based router
 func NewDijkstraRouter() *DijkstraRouter {
 	return &DijkstraRouter{
-		routes:   make(map[types.INode]routeEntry),
+		routes:   make(map[types.Node]routeEntry),
 		services: make(map[string]routeEntry),
 		comparer: func(a, b dijkstraEntry) bool {
 			return a.Latency < b.Latency
@@ -40,7 +41,7 @@ func NewDijkstraRouter() *DijkstraRouter {
 }
 
 // Mount attaches the router to a node
-func (r *DijkstraRouter) Mount(n types.INode) error {
+func (r *DijkstraRouter) Mount(n types.Node) error {
 	if r.self != nil {
 		return errors.New("router already mounted")
 	}
@@ -55,11 +56,11 @@ func (r *DijkstraRouter) CanPreRouteCalc() bool { return true }
 func (r *DijkstraRouter) CanOnRouteCalc() bool { return true }
 
 // RouteAsyncToNode finds a route to a specific node
-func (r *DijkstraRouter) RouteAsyncToNode(target types.INode, payload types.IPayload) (types.IRouteResult, error) {
+func (r *DijkstraRouter) RouteAsyncToNode(target types.Node, payload types.Payload) (types.RouteResult, error) {
 	if r.self == nil {
 		return nil, errors.New("router not mounted")
 	}
-	if r.self == target { // Compare values directly since self is of type types.INode
+	if r.self == target { // Compare values directly since self is of type types.Node
 		// Return a PreRouteResult with 0 latency when self == target
 		return NewPreRouteResult(0), nil // Use the function to create the PreRouteResult
 	}
@@ -70,7 +71,7 @@ func (r *DijkstraRouter) RouteAsyncToNode(target types.INode, payload types.IPay
 }
 
 // RouteAsync finds a route by service name
-func (r *DijkstraRouter) RouteAsync(serviceName string, payload types.IPayload) (types.IRouteResult, error) {
+func (r *DijkstraRouter) RouteAsync(serviceName string, payload types.Payload) (types.RouteResult, error) {
 	if r.self == nil {
 		return nil, errors.New("router not mounted")
 	}
@@ -95,7 +96,7 @@ func (r *DijkstraRouter) CalculateRoutingTableAsync() error {
 	if r.self == nil {
 		return errors.New("router not mounted")
 	}
-	r.routes = make(map[types.INode]routeEntry)
+	r.routes = make(map[types.Node]routeEntry)
 	r.services = make(map[string]routeEntry)
 
 	queue := []dijkstraEntry{}
@@ -119,7 +120,7 @@ func (r *DijkstraRouter) CalculateRoutingTableAsync() error {
 	sort.Slice(queue, func(i, j int) bool { return r.comparer(queue[i], queue[j]) })
 
 	// Initialize visited map
-	visited := map[types.INode]bool{r.self: true}
+	visited := map[types.Node]bool{r.self: true}
 
 	// Process the queue
 	for len(queue) > 0 {
@@ -172,7 +173,7 @@ func (r *DijkstraRouter) AdvertiseNewServiceAsync(serviceName string) error {
 }
 
 // ReceiveServiceAdvertismentsAsync updates service routes
-func (r *DijkstraRouter) ReceiveServiceAdvertismentsAsync(serviceName string, outlink types.ILink, route types.IRouteResult) error {
+func (r *DijkstraRouter) ReceiveServiceAdvertismentsAsync(serviceName string, outlink types.Link, route types.RouteResult) error {
 	if existing, ok := r.services[serviceName]; ok && existing.Route.Latency() <= route.Latency() {
 		return nil
 	}
@@ -181,7 +182,7 @@ func (r *DijkstraRouter) ReceiveServiceAdvertismentsAsync(serviceName string, ou
 }
 
 // addServicesToRoutes helps manage the services associated with a node in the routes map.
-func (r *DijkstraRouter) addServicesToRoutes(target types.INode, latency float64) {
+func (r *DijkstraRouter) addServicesToRoutes(target types.Node, latency float64) {
 	// Loop through all services hosted on the target node
 	for _, service := range target.GetComputing().GetServices() {
 		// Check if the service already exists in the routing table

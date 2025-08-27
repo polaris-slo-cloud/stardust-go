@@ -13,7 +13,7 @@ import (
 // IslNearestProtocol connects a node to its N nearest neighbors using ISLs.
 type IslNearestProtocol struct {
 	config    configmod.InterSatelliteLinkConfig
-	satellite types.INode
+	satellite types.Node
 
 	mu       sync.Mutex
 	links    []*linkmod.IslLink        // All potential links
@@ -30,14 +30,14 @@ func NewIslNearestProtocol(cfg configmod.InterSatelliteLinkConfig) *IslNearestPr
 }
 
 // Mount binds the protocol to a satellite node.
-func (p *IslNearestProtocol) Mount(s types.INode) {
+func (p *IslNearestProtocol) Mount(s types.Node) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.satellite = s
 }
 
 // AddLink registers a new potential inter-satellite link.
-func (p *IslNearestProtocol) AddLink(link types.ILink) {
+func (p *IslNearestProtocol) AddLink(link types.Link) {
 	if isl, ok := link.(*linkmod.IslLink); ok {
 		p.mu.Lock()
 		defer p.mu.Unlock()
@@ -46,7 +46,7 @@ func (p *IslNearestProtocol) AddLink(link types.ILink) {
 }
 
 // ConnectLink marks an incoming connection from a peer.
-func (p *IslNearestProtocol) ConnectLink(link types.ILink) error {
+func (p *IslNearestProtocol) ConnectLink(link types.Link) error {
 	if isl, ok := link.(*linkmod.IslLink); ok {
 		p.mu.Lock()
 		defer p.mu.Unlock()
@@ -56,7 +56,7 @@ func (p *IslNearestProtocol) ConnectLink(link types.ILink) error {
 }
 
 // DisconnectLink removes the incoming status if it's not also an outgoing link.
-func (p *IslNearestProtocol) DisconnectLink(link types.ILink) error {
+func (p *IslNearestProtocol) DisconnectLink(link types.Link) error {
 	if isl, ok := link.(*linkmod.IslLink); ok {
 		p.mu.Lock()
 		defer p.mu.Unlock()
@@ -69,7 +69,7 @@ func (p *IslNearestProtocol) DisconnectLink(link types.ILink) error {
 }
 
 // ConnectSatellite is a helper to find and connect to a specific satellite.
-func (p *IslNearestProtocol) ConnectSatellite(s types.INode) error {
+func (p *IslNearestProtocol) ConnectSatellite(s types.Node) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	for _, l := range p.links {
@@ -81,7 +81,7 @@ func (p *IslNearestProtocol) ConnectSatellite(s types.INode) error {
 }
 
 // DisconnectSatellite is a helper to find and disconnect from a specific satellite.
-func (p *IslNearestProtocol) DisconnectSatellite(s types.INode) error {
+func (p *IslNearestProtocol) DisconnectSatellite(s types.Node) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	for _, l := range p.links {
@@ -93,7 +93,7 @@ func (p *IslNearestProtocol) DisconnectSatellite(s types.INode) error {
 }
 
 // UpdateLinks reconnects to the closest N reachable satellites.
-func (p *IslNearestProtocol) UpdateLinks() ([]types.ILink, error) {
+func (p *IslNearestProtocol) UpdateLinks() ([]types.Link, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -152,7 +152,7 @@ func (p *IslNearestProtocol) UpdateLinks() ([]types.ILink, error) {
 	}
 
 	// Return current active links
-	result := make([]types.ILink, len(p.outgoing))
+	result := make([]types.Link, len(p.outgoing))
 	for i, l := range p.outgoing {
 		result[i] = l
 	}
@@ -160,10 +160,10 @@ func (p *IslNearestProtocol) UpdateLinks() ([]types.ILink, error) {
 }
 
 // Links returns all known links.
-func (p *IslNearestProtocol) Links() []types.ILink {
+func (p *IslNearestProtocol) Links() []types.Link {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	res := make([]types.ILink, len(p.links))
+	res := make([]types.Link, len(p.links))
 	for i, l := range p.links {
 		res[i] = l
 	}
@@ -171,7 +171,7 @@ func (p *IslNearestProtocol) Links() []types.ILink {
 }
 
 // Established returns all active links (incoming or outgoing).
-func (p *IslNearestProtocol) Established() []types.ILink {
+func (p *IslNearestProtocol) Established() []types.Link {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	seen := make(map[*linkmod.IslLink]bool)
@@ -181,7 +181,7 @@ func (p *IslNearestProtocol) Established() []types.ILink {
 	for l := range p.incoming {
 		seen[l] = true
 	}
-	out := make([]types.ILink, 0, len(seen))
+	out := make([]types.Link, 0, len(seen))
 	for l := range seen {
 		out = append(out, l)
 	}
