@@ -2,46 +2,46 @@ package configs
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	Simulation SimulationConfig         `json:"SimulationConfiguration"`
-	ISL        InterSatelliteLinkConfig `json:"InterSatelliteLinkConfig"`
-	Router     RouterConfig             `json:"RouterConfig"`
-	Computing  []ComputingConfig        `json:"ComputingConfiguration"`
+	Simulation SimulationConfig         `json:"SimulationConfiguration" yaml:"SimulationConfiguration"`
+	ISL        InterSatelliteLinkConfig `json:"InterSatelliteLinkConfig" yaml:"InterSatelliteLinkConfig"`
+	Router     RouterConfig             `json:"RouterConfig" yaml:"RouterConfig"`
+	Computing  []ComputingConfig        `json:"ComputingConfiguration" yaml:"ComputingConfiguration"`
 }
 
 type SimulationConfig struct {
-	StepInterval            int       `json:"StepInterval"`
-	StepMultiplier          int       `json:"StepMultiplier"`
-	SatelliteDataSource     string    `json:"SatelliteDataSource"`
-	SatelliteDataSourceType string    `json:"SatelliteDataSourceType"`
-	UsePreRouteCalc         bool      `json:"UsePreRouteCalc"`
-	MaxCpuCores             int       `json:"MaxCpuCores"`
-	SimulationStartTime     time.Time `json:"SimulationStartTime"`
+	StepInterval            int       `json:"StepInterval" yaml:"StepInterval"`
+	StepMultiplier          int       `json:"StepMultiplier" yaml:"StepMultiplier"`
+	SatelliteDataSource     string    `json:"SatelliteDataSource" yaml:"SatelliteDataSource"`
+	SatelliteDataSourceType string    `json:"SatelliteDataSourceType" yaml:"SatelliteDataSourceType"`
+	UsePreRouteCalc         bool      `json:"UsePreRouteCalc" yaml:"UsePreRouteCalc"`
+	MaxCpuCores             int       `json:"MaxCpuCores" yaml:"MaxCpuCores"`
+	SimulationStartTime     time.Time `json:"SimulationStartTime" yaml:"SimulationStartTime"`
 }
 
 type InterSatelliteLinkConfig struct {
-	Neighbours int    `json:"neighbours"` // Number of neighbors per satellite
-	Protocol   string `json:"protocol"`   // Strategy name: "mst", "nearest", etc.
+	Neighbours int    `json:"Neighbours" yaml:"Neighbours"` // Number of neighbors per satellite
+	Protocol   string `json:"Protocol" yaml:"Protocol"`     // Strategy name: "mst", "nearest", etc.
 }
 
 type RouterConfig struct {
-	Protocol string `json:"protocol" yaml:"protocol"`
+	Protocol string `json:"Protocol" yaml:"Protocol"`
 }
 
 type ComputingConfig struct {
-	Cores  int           `json:"Cores"`
-	Memory int           `json:"Memory"`
-	Type   ComputingType `json:"Type"` // Should be either "Edge" or "Cloud"
-}
-
-type ComputingConfigList struct {
-	Type []ComputingConfig // This should hold multiple computing configurations
+	Cores  int           `json:"Cores" yaml:"Cores"`
+	Memory int           `json:"Memory" yaml:"Memory"`
+	Type   ComputingType `json:"Type" yaml:"Type"` // Should be either "Edge" or "Cloud"
 }
 
 type ComputingType int
@@ -62,38 +62,72 @@ func (c ComputingType) String() string {
 	return [...]string{"None", "Edge", "Cloud", "Any"}[c]
 }
 
+func ToComputingType(s string) (ComputingType, error) {
+	switch strings.ToLower(s) {
+	case "none":
+		return None, nil
+	case "edge":
+		return Edge, nil
+	case "cloud":
+		return Cloud, nil
+	case "any":
+		return Any, nil
+	default:
+		return None, fmt.Errorf("unknown ComputingType: %s", s)
+	}
+}
+
+// UnmarshalJSON allows ComputingType to be parsed from JSON as a string.
 func (c *ComputingType) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	switch strings.ToLower(s) {
-	case "none":
-		*c = None
-	case "edge":
-		*c = Edge
-	case "cloud":
-		*c = Cloud
-	case "any":
-		*c = Any
-	default:
-		return fmt.Errorf("unknown ComputingType: %s", s)
+
+	ct, err := ToComputingType(s)
+	if err != nil {
+		return err
 	}
+
+	*c = ct
 	return nil
 }
 
-func (c ComputingType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.String())
+// UnmarshalYAML allows ComputingType to be parsed from YAML as a string.
+func (c *ComputingType) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var s string
+	if err := unmarshal(&s); err != nil {
+		return err
+	}
+
+	ct, err := ToComputingType(s)
+	if err != nil {
+		return err
+	}
+
+	*c = ct
+	return nil
 }
 
-func LoadConfig(path string) (*Config, error) {
+func LoadConfigFromFile(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
+
 	var cfg Config
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		return nil, err
+	ext := filepath.Ext(path)
+	switch ext {
+	case ".yaml", ".yml":
+		if err := yaml.Unmarshal(data, &cfg); err != nil {
+			return nil, err
+		}
+	case ".json":
+		if err := json.Unmarshal(data, &cfg); err != nil {
+			return nil, err
+		}
+	default:
+		return nil, errors.New("unsupported config file type")
 	}
 	return &cfg, nil
 }

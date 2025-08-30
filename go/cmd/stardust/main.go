@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/computing"
@@ -12,8 +14,14 @@ import (
 )
 
 func main() {
+
+	if len(os.Args) != 2 {
+		log.Fatalf("Usage: %s <configFile>", os.Args[0])
+	}
+	configFile := os.Args[1]
+
 	// Step 1: Load application configuration (from configs/appsettings.json)
-	cfg, err := configs.LoadConfig("configs/appsettings.json")
+	cfg, err := configs.LoadConfigFromFile(configFile)
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
@@ -38,7 +46,7 @@ func main() {
 	simService.Inject(orchestrator)
 
 	// Step 7: Load satellites using the loader service
-	loaderService := satellite.NewLoaderService(cfg.ISL, satBuilder, constellationLoader, simService, "resources/tle/starlink_500.tle", "tle")
+	loaderService := satellite.NewLoaderService(cfg.ISL, satBuilder, constellationLoader, simService, fmt.Sprintf("./resources/%s/%s", cfg.Simulation.SatelliteDataSourceType, cfg.Simulation.SatelliteDataSource), cfg.Simulation.SatelliteDataSourceType)
 	if err := loaderService.Start(); err != nil {
 		log.Fatalf("Failed to load satellites: %v", err)
 	}
