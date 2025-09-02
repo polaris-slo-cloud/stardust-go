@@ -5,6 +5,8 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+var _ types.Link = (*GroundLink)(nil)
+
 const groundSpeedOfLight = configs.SpeedOfLight * 0.98 // 98% of light speed
 
 type GroundLink struct {

@@ -32,10 +32,12 @@ func main() {
 	// Step 3: Build router builder
 	routerBuilder := routing.NewRouterBuilder(cfg.Router)
 
-	// Step 4: Initialize the satellite builder and constellation loader
+	// Step 4: Initialize the satellite builder
 	satBuilder := satellite.NewSatelliteBuilder(routerBuilder, computingBuilder, cfg.ISL)
-	constellationLoader := satellite.NewSatelliteConstellationLoader()
 	tleLoader := satellite.NewTleLoader(cfg.ISL, satBuilder)
+
+	// Step 4.1: Initialize constellation loader and register TLE loader
+	constellationLoader := satellite.NewSatelliteConstellationLoader()
 	constellationLoader.RegisterDataSourceLoader("tle", tleLoader)
 
 	// Step 5: Initialize simulation service
@@ -51,13 +53,13 @@ func main() {
 		log.Fatalf("Failed to load satellites: %v", err)
 	}
 
-	// Step 8: Optionally start the simulation loop
+	// Step 8: Start the simulation loop or run individual code
 	if cfg.Simulation.StepInterval >= 0 {
-		done := simService.StartAutorunAsync()
+		done := simService.StartAutorun()
 		<-done // blocks main goroutine until simulation stops
-	}
-
-	select {
-	case <-make(chan struct{}): // blocks forever
+	} else {
+		log.Println("Simulation loaded. Not autorunning as StepInterval < 0.")
+		simService.StepBySeconds(60) // Example: step by 60 seconds
+		log.Println("Simulation stepped by 60 seconds.")
 	}
 }

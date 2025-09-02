@@ -6,24 +6,21 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keniack/stardustGo/internal/links/linktypes"
 	"github.com/keniack/stardustGo/pkg/types"
 )
+
+var _ types.Node = (*GroundStation)(nil)
 
 // GroundSatelliteLinkProtocol defines the interface for managing ground-to-satellite link behavior
 type GroundSatelliteLinkProtocol interface {
 	Mount(station *GroundStation)
 	UpdateLink() error
-	Link() *Link
-}
-
-// Link is a placeholder for actual link data structure
-type Link struct {
-	// Placeholder for the actual link properties
+	Link() *linktypes.GroundLink
 }
 
 // GroundStation represents an Earth-based node that links to satellites
 // It updates its position over time and tracks the nearest satellites
-
 type GroundStation struct {
 	BaseNode
 
@@ -33,11 +30,12 @@ type GroundStation struct {
 	GroundSatelliteLinkProtocol GroundSatelliteLinkProtocol
 
 	Position types.Vector
+	Link     *linktypes.GroundLink
 	mu       sync.Mutex
 }
 
 // NewGroundStation creates and initializes a new ground station with link protocol and position
-func NewGroundStation(name string, lon, lat float64, link GroundSatelliteLinkProtocol, simStart time.Time, router types.Router, computing types.Computing) *GroundStation {
+func NewGroundStation(name string, lon, lat float64, protocol GroundSatelliteLinkProtocol, simStart time.Time, router types.Router, computing types.Computing) *GroundStation {
 	gs := &GroundStation{
 		BaseNode: BaseNode{
 			Name:      name,
@@ -47,10 +45,10 @@ func NewGroundStation(name string, lon, lat float64, link GroundSatelliteLinkPro
 		Longitude:                   lon,
 		Latitude:                    lat,
 		SimulationStartTime:         simStart,
-		GroundSatelliteLinkProtocol: link,
+		GroundSatelliteLinkProtocol: protocol,
 	}
 	gs.UpdatePositionFromElapsed(0)
-	link.Mount(gs)
+	protocol.Mount(gs)
 	return gs
 }
 
@@ -67,13 +65,13 @@ func (gs *GroundStation) DistanceTo(other types.Node) float64 {
 }
 
 // UpdatePosition sets the current position of the ground station based on simulation time
-func (gs *GroundStation) UpdatePosition(simTime time.Time) error {
+func (gs *GroundStation) UpdatePosition(simTime time.Time) {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 
 	timeElapsed := simTime.Sub(gs.SimulationStartTime).Seconds()
 	gs.UpdatePositionFromElapsed(timeElapsed)
-	return gs.GroundSatelliteLinkProtocol.UpdateLink()
+	gs.GroundSatelliteLinkProtocol.UpdateLink()
 }
 
 // UpdatePositionFromElapsed calculates Earth-centered coordinates using geodetic formula
@@ -118,4 +116,8 @@ func (gs *GroundStation) FindNearestSatellite(sats []*Satellite) (*Satellite, er
 		}
 	}
 	return nearest, nil
+}
+
+func (gs *GroundStation) GetLinks() []types.Link {
+	return []types.Link{gs.GroundSatelliteLinkProtocol.Link()}
 }

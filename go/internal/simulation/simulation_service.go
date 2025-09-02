@@ -14,6 +14,8 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+var _ types.SimulationController = (*SimulationService)(nil)
+
 // SimulationService handles simulation lifecycle and state updates
 type SimulationService struct {
 	config           configs.SimulationConfig
@@ -24,10 +26,10 @@ type SimulationService struct {
 	satellites  []*node.Satellite
 	groundNodes []*node.GroundStation
 	simTime     time.Time
-	autorun     bool
 	maxCores    int
 	lock        sync.Mutex
 
+	autorun      bool
 	running      bool
 	orchestrator *deployment.DeploymentOrchestrator
 }
@@ -46,23 +48,17 @@ func NewSimulationService(
 		satellites:       []*node.Satellite{},
 		groundNodes:      []*node.GroundStation{},
 		simTime:          config.SimulationStartTime,
-		autorun:          config.StepInterval >= 0,
 		maxCores:         config.MaxCpuCores,
 	}
 }
 
 // Inject sets the orchestrator dependency
 func (s *SimulationService) Inject(o *deployment.DeploymentOrchestrator) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
 	s.orchestrator = o
 }
 
 // InjectSatellites adds the loaded satellites to the simulation scope
 func (s *SimulationService) InjectSatellites(satellites []types.Node) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
 	s.satellites = make([]*node.Satellite, 0, len(satellites))
 	for _, n := range satellites {
 		sat, ok := n.(*node.Satellite)
@@ -77,98 +73,103 @@ func (s *SimulationService) InjectSatellites(satellites []types.Node) error {
 	return nil
 }
 
-// StartAsync initializes simulation components and starts the simulation
-func (s *SimulationService) StartAsync() {
-	log.Println("Starting simulation...")
-	// Additional startup logic if needed
-}
-
-// StopAsync terminates the simulation loop
-func (s *SimulationService) StopAsync() {
-	log.Println("Stopping simulation...")
+// StartAutorun begins the simulation loop in autorun mode
+func (s *SimulationService) StartAutorun() <-chan struct{} {
 	s.lock.Lock()
-	defer s.lock.Unlock()
-	s.autorun = false
-	s.running = false
-}
+	if s.autorun {
+		s.lock.Unlock()
+		done := make(chan struct{})
+		close(done)
+		return done // autorun already active
+	}
+	s.autorun = true
+	s.lock.Unlock()
 
-func (s *SimulationService) StartAutorunAsync() <-chan struct{} {
 	done := make(chan struct{})
-
 	go func() {
-		s.runSimulationStep(func(prev time.Time) time.Time {
-			return prev.Add(time.Duration(s.config.StepMultiplier) * time.Second)
-		})
+		// While autorun is enabled, run simulation steps at configured intervals
+		for {
+			if !s.autorun {
+				break
+			}
+
+			s.runSimulationStep(func(prev time.Time) time.Time {
+				return prev.Add(time.Duration(s.config.StepMultiplier) * time.Second)
+			})
+
+			time.Sleep(time.Duration(s.config.StepInterval) * time.Millisecond)
+		}
 		close(done) // closed when simulation loop exits
 	}()
 
 	return done
 }
 
-// StopAutorunAsync disables autorun mode
-func (s *SimulationService) StopAutorunAsync() {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+// StopAutorun disables autorun mode
+func (s *SimulationService) StopAutorun() {
 	s.autorun = false
 }
 
-// StepAsync executes a single step manually (e.g. UI trigger)
-func (s *SimulationService) StepAsync(seconds float64) {
-	s.lock.Lock()
-	if s.autorun {
-		s.lock.Unlock()
-		return
-	}
-	s.lock.Unlock()
-
+// StepBySeconds executes a single step manually (e.g. UI trigger)
+func (s *SimulationService) StepBySeconds(seconds float64) {
 	s.runSimulationStep(func(prev time.Time) time.Time {
 		return prev.Add(time.Duration(seconds * float64(time.Second)))
 	})
 }
 
+// StepByTime executes a single step manually (e.g. UI trigger)
+func (s *SimulationService) StepByTime(newTime time.Time) {
+	s.runSimulationStep(func(prev time.Time) time.Time {
+		return newTime
+	})
+}
+
 // runSimulationStep is the core loop to simulate node and orchestrator logic
 func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time) {
-	s.running = true
-
-	for s.autorun || !s.running {
-		s.simTime = nextTime(s.simTime)
-		log.Printf("Simulation time is %s", s.simTime.Format(time.RFC3339))
-
-		// Update positions of all nodes (satellites and ground stations)
-		var wg sync.WaitGroup
-		for _, n := range s.all {
-			wg.Add(1)
-			go func(n types.Node) {
-				defer wg.Done()
-				n.UpdatePosition(s.simTime) // Update each node's position
-			}(n)
-		}
-		wg.Wait()
-
-		// ISL updates (Inter-Satellite Links)
-		for _, sat := range s.satellites {
-			go sat.ISLProtocol.UpdateLinks()
-		}
-
-		// Routing and computation (if enabled)
-		if s.config.UsePreRouteCalc {
-			for _, sat := range s.satellites {
-				go sat.Router.CalculateRoutingTableAsync()
-			}
-		}
-
-		// Check if the orchestrator needs to reschedule
-		if s.orchestrator != nil {
-			log.Println("Checking orchestrator for reschedule...")
-			// s.orchestrator.CheckReschedule()
-		}
-
-		if !s.autorun {
-			break
-		}
-
-		time.Sleep(1 * time.Second) // Simulate step duration
+	if s.running {
+		return
 	}
+	s.lock.Lock()
+	if s.running {
+		s.lock.Unlock()
+		return
+	}
+	s.running = true
+	s.lock.Unlock()
+
+	s.simTime = nextTime(s.simTime)
+	log.Printf("Simulation time is %s", s.simTime.Format(time.RFC3339))
+
+	// Update positions of all nodes (satellites and ground stations)
+	var wg sync.WaitGroup
+	for _, n := range s.all {
+		wg.Add(1)
+		go func(n types.Node) {
+			defer wg.Done()
+			n.UpdatePosition(s.simTime) // Update each node's position
+		}(n)
+	}
+	wg.Wait()
+
+	// ISL updates (Inter-Satellite Links)
+	for _, sat := range s.satellites {
+		go sat.ISLProtocol.UpdateLinks()
+	}
+
+	// Routing and computation (if enabled)
+	if s.config.UsePreRouteCalc {
+		for _, sat := range s.satellites {
+			go sat.Router.CalculateRoutingTableAsync()
+		}
+	}
+
+	// Check if the orchestrator needs to reschedule
+	if s.orchestrator != nil {
+		log.Println("Checking orchestrator for reschedule...")
+		// s.orchestrator.CheckReschedule()
+	}
+
+	time.Sleep(1 * time.Second) // Simulate step duration
 
 	s.running = false
 }

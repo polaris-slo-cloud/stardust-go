@@ -5,6 +5,8 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+var _ types.Link = (*IslLink)(nil)
+
 const speedOfLight = configs.SpeedOfLight * 0.99 // 99% of light speed
 
 // IslLink represents an inter-satellite laser link.

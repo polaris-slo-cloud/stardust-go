@@ -9,7 +9,7 @@ import (
 
 // LoaderService wires the constellation loader and triggers simulation startup.
 type LoaderService struct {
-	controller            types.ISimulationController
+	controller            types.SimulationController
 	constellationLoader   *SatelliteConstellationLoader
 	tleLoader             *TleLoader
 	satelliteBuilder      *SatelliteBuilder
@@ -23,7 +23,7 @@ func NewLoaderService(
 	config configs.InterSatelliteLinkConfig,
 	builder *SatelliteBuilder,
 	loader *SatelliteConstellationLoader,
-	controller types.ISimulationController,
+	controller types.SimulationController,
 	dataSourcePath string,
 	sourceFormat string,
 ) *LoaderService {
