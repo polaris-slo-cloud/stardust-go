@@ -9,6 +9,8 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+var _ types.GroundSatelliteLinkProtocol = (*GroundSatelliteNearestProtocol)(nil)
+
 // GroundSatelliteNearestProtocol maintains a single active link from the ground station
 // to the nearest satellite at any given time.
 type GroundSatelliteNearestProtocol struct {
@@ -57,16 +59,16 @@ func (p *GroundSatelliteNearestProtocol) DisconnectSatellite(s types.Node) error
 	return nil
 }
 
-// UpdateLinks selects the closest satellite and sets up the ground link accordingly.
-func (p *GroundSatelliteNearestProtocol) UpdateLinks() ([]types.Link, error) {
+// UpdateLink selects the closest satellite and sets up the ground link accordingly.
+func (p *GroundSatelliteNearestProtocol) UpdateLink() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	if p.groundStation == nil {
-		return nil, errors.New("protocol not mounted to ground station")
+		return errors.New("protocol not mounted to ground station")
 	}
 	if len(p.satellites) == 0 {
-		return nil, errors.New("no satellites available")
+		return errors.New("no satellites available")
 	}
 
 	sort.Slice(p.satellites, func(i, j int) bool {
@@ -75,7 +77,7 @@ func (p *GroundSatelliteNearestProtocol) UpdateLinks() ([]types.Link, error) {
 
 	nearest := p.satellites[0]
 	if nearest == nil || (p.link != nil && p.link.Satellite.GetName() == nearest.GetName()) {
-		return []types.Link{p.link}, nil // Already linked to the nearest
+		return nil // Already linked to the nearest
 	}
 
 	old := p.link
@@ -93,7 +95,7 @@ func (p *GroundSatelliteNearestProtocol) UpdateLinks() ([]types.Link, error) {
 		}
 	}
 
-	return []types.Link{p.link}, nil
+	return nil
 }
 
 // Links returns the current active link if any.
@@ -112,10 +114,11 @@ func (p *GroundSatelliteNearestProtocol) Established() []types.Link {
 }
 
 // Link returns the currently active GroundLink.
-func (p *GroundSatelliteNearestProtocol) Link() *linktypes.GroundLink {
+func (p *GroundSatelliteNearestProtocol) Link() *types.Link {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	return p.link
+	var link types.Link = p.link
+	return &link
 }
 
 // AddSatellite adds a satellite to the trackable list.

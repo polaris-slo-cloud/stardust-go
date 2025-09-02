@@ -10,6 +10,8 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+var _ types.InterSatelliteLinkProtocol = (*IslMstProtocol)(nil)
+
 // IslMstProtocol builds a global minimum spanning tree (MST) of ISL links.
 // It uses Kruskal’s algorithm with a union-find structure over node names.
 type IslMstProtocol struct {

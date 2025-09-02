@@ -1,7 +1,7 @@
 package types
 
-// IInterSatelliteLinkProtocol defines the interface for managing inter-satellite links (ISL) between nodes.
-type IInterSatelliteLinkProtocol interface {
+// InterSatelliteLinkProtocol defines the interface for managing inter-satellite links (ISL) between nodes.
+type InterSatelliteLinkProtocol interface {
 	Links() []Link
 	Established() []Link
 	UpdateLinks() ([]Link, error)

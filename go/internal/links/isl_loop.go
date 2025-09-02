@@ -8,16 +8,18 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+var _ types.InterSatelliteLinkProtocol = (*IslAddLoopProtocol)(nil)
+
 // IslAddLoopProtocol wraps another IInterSatelliteLinkProtocol
 // and adds a single additional loop link if too few are established.
 type IslAddLoopProtocol struct {
-	inner  types.IInterSatelliteLinkProtocol
+	inner  types.InterSatelliteLinkProtocol
 	config configs.InterSatelliteLinkConfig
 	mu     sync.Mutex
 }
 
 // NewIslAddLoopProtocol creates a loop-adding decorator.
-func NewIslAddLoopProtocol(inner types.IInterSatelliteLinkProtocol, cfg configs.InterSatelliteLinkConfig) *IslAddLoopProtocol {
+func NewIslAddLoopProtocol(inner types.InterSatelliteLinkProtocol, cfg configs.InterSatelliteLinkConfig) *IslAddLoopProtocol {
 	return &IslAddLoopProtocol{inner: inner, config: cfg}
 }
 

@@ -6,13 +6,13 @@ type Computing interface {
 	Mount(node *Node) error
 
 	// TryPlaceDeploymentAsync tries to place a service on this computing unit
-	TryPlaceDeploymentAsync(service IDeployableService) (bool, error)
+	TryPlaceDeploymentAsync(service DeployableService) (bool, error)
 
 	// RemoveDeploymentAsync removes a deployed service from the computing unit
-	RemoveDeploymentAsync(service IDeployableService) error
+	RemoveDeploymentAsync(service DeployableService) error
 
 	// CanPlace checks if the service can be placed on this computing unit
-	CanPlace(service IDeployableService) bool
+	CanPlace(service DeployableService) bool
 
 	// HostsService checks if the computing unit hosts a service by name
 	HostsService(serviceName string) bool
@@ -27,5 +27,5 @@ type Computing interface {
 	Clone() Computing
 
 	// GetServices returns the list of deployed services
-	GetServices() []IDeployableService
+	GetServices() []DeployableService
 }

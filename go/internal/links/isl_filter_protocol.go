@@ -8,10 +8,12 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+var _ types.InterSatelliteLinkProtocol = (*IslFilterProtocol)(nil)
+
 // IslFilterProtocol wraps another IInterSatelliteLinkProtocol and filters links
 // so that only those involving the mounted node are retained and processed.
 type IslFilterProtocol struct {
-	inner       types.IInterSatelliteLinkProtocol
+	inner       types.InterSatelliteLinkProtocol
 	satellite   types.Node
 	links       map[*linktypes.IslLink]struct{}
 	established map[*linktypes.IslLink]struct{}
@@ -19,7 +21,7 @@ type IslFilterProtocol struct {
 }
 
 // NewIslFilterProtocol initializes the filter protocol
-func NewIslFilterProtocol(inner types.IInterSatelliteLinkProtocol) *IslFilterProtocol {
+func NewIslFilterProtocol(inner types.InterSatelliteLinkProtocol) *IslFilterProtocol {
 	return &IslFilterProtocol{
 		inner:       inner,
 		links:       make(map[*linktypes.IslLink]struct{}),

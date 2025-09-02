@@ -6,23 +6,22 @@ import (
 	"time"
 
 	"github.com/keniack/stardustGo/configs"
-
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // Computing represents the computing resources of a node.
 type Computing struct {
-	Cpu         float64                    // Total CPU available
-	Memory      float64                    // Total memory available
-	Type        configs.ComputingType      // Type of the computing unit
-	CpuUsage    float64                    // Current CPU usage
-	MemoryUsage float64                    // Current memory usage
-	Services    []types.IDeployableService // List of deployed services (using IDeployedService)
-	mu          sync.Mutex                 // Mutex to ensure thread safety
-	node        *types.Node                // Node to which this computing is mounted
+	Cpu         float64                   // Total CPU available
+	Memory      float64                   // Total memory available
+	Type        configs.ComputingType     // Type of the computing unit
+	CpuUsage    float64                   // Current CPU usage
+	MemoryUsage float64                   // Current memory usage
+	Services    []types.DeployableService // List of deployed services (using IDeployedService)
+	mu          sync.Mutex                // Mutex to ensure thread safety
+	node        *types.Node               // Node to which this computing is mounted
 }
 
-func (c *Computing) GetServices() []types.IDeployableService {
+func (c *Computing) GetServices() []types.DeployableService {
 	return c.Services
 }
 
@@ -32,7 +31,7 @@ func NewComputing(cpu, memory float64, ctype configs.ComputingType) *Computing {
 		Cpu:      cpu,
 		Memory:   memory,
 		Type:     ctype,
-		Services: []types.IDeployableService{},
+		Services: []types.DeployableService{},
 	}
 }
 
@@ -49,7 +48,7 @@ func (c *Computing) Mount(node *types.Node) error {
 }
 
 // TryPlaceDeploymentAsync tries to place a service on this computing unit
-func (c *Computing) TryPlaceDeploymentAsync(service types.IDeployableService) (bool, error) {
+func (c *Computing) TryPlaceDeploymentAsync(service types.DeployableService) (bool, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -76,7 +75,7 @@ func (c *Computing) TryPlaceDeploymentAsync(service types.IDeployableService) (b
 }
 
 // RemoveDeploymentAsync removes a deployed service from the computing unit
-func (c *Computing) RemoveDeploymentAsync(service types.IDeployableService) error {
+func (c *Computing) RemoveDeploymentAsync(service types.DeployableService) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -93,7 +92,7 @@ func (c *Computing) RemoveDeploymentAsync(service types.IDeployableService) erro
 }
 
 // CanPlace checks if the service can be placed on this computing unit
-func (c *Computing) CanPlace(service types.IDeployableService) bool {
+func (c *Computing) CanPlace(service types.DeployableService) bool {
 	if service.GetCpuUsage() > c.CpuAvailable() {
 		return false
 	}
@@ -134,7 +133,7 @@ func (c *Computing) MemoryAvailable() float64 {
 // Clone creates a new copy of the current computing unit and returns it as IComputing.
 func (c *Computing) Clone() types.Computing {
 	// Clone each deployed service
-	servicesClone := make([]types.IDeployableService, len(c.Services))
+	servicesClone := make([]types.DeployableService, len(c.Services))
 	copy(servicesClone, c.Services)
 
 	return &Computing{

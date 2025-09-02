@@ -26,13 +26,13 @@ type Satellite struct {
 	MeanMotion           float64
 	SemiMajorAxis        float64
 	Epoch                time.Time
-	ISLProtocol          types.IInterSatelliteLinkProtocol
+	ISLProtocol          types.InterSatelliteLinkProtocol
 	GroundLinks          []types.Link
 	Position             types.Vector
 }
 
 // NewSatellite initializes a new Satellite object with orbital configuration and ISL protocol.
-func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, meanMotion float64, epoch time.Time, simTime time.Time, isl types.IInterSatelliteLinkProtocol, router types.Router, computing types.Computing) *Satellite {
+func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, meanMotion float64, epoch time.Time, simTime time.Time, isl types.InterSatelliteLinkProtocol, router types.Router, computing types.Computing) *Satellite {
 	inclRad := types.DegreesToRadians(inclination)
 	raanRad := types.DegreesToRadians(raan)
 	argPerigeeRad := types.DegreesToRadians(argPerigee)

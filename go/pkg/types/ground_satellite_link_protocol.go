@@ -1,8 +1,8 @@
 package types
 
-// IGroundSatelliteLinkProtocol abstracts ground link handling logic
-type IGroundSatelliteLinkProtocol interface {
+// GroundSatelliteLinkProtocol abstracts ground link handling logic
+type GroundSatelliteLinkProtocol interface {
 	Link() *Link
 	UpdateLink() error
-	Mount(station *Node)
+	Mount(station Node)
 }

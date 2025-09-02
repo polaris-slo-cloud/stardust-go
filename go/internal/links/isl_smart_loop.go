@@ -5,14 +5,16 @@ import (
 	"sync"
 
 	"github.com/keniack/stardustGo/configs"
-	linkmod "github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/internal/links/linktypes"
 	"github.com/keniack/stardustGo/pkg/types"
 )
+
+var _ types.InterSatelliteLinkProtocol = (*IslAddSmartLoopProtocol)(nil)
 
 // IslAddSmartLoopProtocol wraps another IInterSatelliteLinkProtocol and augments it
 // by adding extra links to form smart loops (e.g., when a satellite has only 1 connection).
 type IslAddSmartLoopProtocol struct {
-	inner       types.IInterSatelliteLinkProtocol
+	inner       types.InterSatelliteLinkProtocol
 	config      configs.InterSatelliteLinkConfig
 	satellite   types.Node
 	position    types.Vector
@@ -22,7 +24,7 @@ type IslAddSmartLoopProtocol struct {
 }
 
 // NewIslAddSmartLoopProtocol creates a new smart loop-enhancing protocol
-func NewIslAddSmartLoopProtocol(inner types.IInterSatelliteLinkProtocol, cfg configs.InterSatelliteLinkConfig) *IslAddSmartLoopProtocol {
+func NewIslAddSmartLoopProtocol(inner types.InterSatelliteLinkProtocol, cfg configs.InterSatelliteLinkConfig) *IslAddSmartLoopProtocol {
 	return &IslAddSmartLoopProtocol{
 		inner:   inner,
 		config:  cfg,
@@ -119,7 +121,7 @@ func (p *IslAddSmartLoopProtocol) UpdateLinks() ([]types.Link, error) {
 	var additions []types.Link
 	for s := range uniqueLinks {
 		for _, candidate := range p.inner.Links() {
-			if isl, ok := candidate.(*linkmod.IslLink); ok && isl.Distance() <= configs.MaxISLDistance {
+			if isl, ok := candidate.(*linktypes.IslLink); ok && isl.Distance() <= configs.MaxISLDistance {
 				if isl.Node1 != s && isl.Node2 != s {
 					continue
 				}

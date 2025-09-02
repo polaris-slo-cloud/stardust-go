@@ -4,31 +4,33 @@ import (
 	"github.com/keniack/stardustGo/configs"
 )
 
-// IComputingBuilder is the interface for building Computing instances.
-type IComputingBuilder interface {
+var _ ComputingBuilder = (*DefaultComputingBuilder)(nil)
+
+// ComputingBuilder is the interface for building Computing instances.
+type ComputingBuilder interface {
 	// WithComputingType sets the computing type for the builder.
-	WithComputingType(computingType configs.ComputingType) IComputingBuilder
+	WithComputingType(computingType configs.ComputingType) ComputingBuilder
 
 	// Build creates and returns the final Computing instance.
 	Build() *Computing // Return a pointer to Computing
 }
 
-// ComputingBuilder builds a Computing instance based on a given configuration.
-type ComputingBuilder struct {
+// DefaultComputingBuilder builds a Computing instance based on a given configuration.
+type DefaultComputingBuilder struct {
 	computingConfiguration configs.ComputingConfig
 	useComputing           *Computing // Pointer to Computing
 }
 
 // NewComputingBuilder creates a new instance of ComputingBuilder with the given configuration.
-func NewComputingBuilder(computingConfiguration configs.ComputingConfig) *ComputingBuilder {
-	return &ComputingBuilder{
+func NewComputingBuilder(computingConfiguration configs.ComputingConfig) *DefaultComputingBuilder {
+	return &DefaultComputingBuilder{
 		computingConfiguration: computingConfiguration,
 		useComputing:           nil, // No computing selected initially
 	}
 }
 
 // WithComputingType configures the Computing instance with a specific ComputingType.
-func (b *ComputingBuilder) WithComputingType(computingType configs.ComputingType) IComputingBuilder {
+func (b *DefaultComputingBuilder) WithComputingType(computingType configs.ComputingType) ComputingBuilder {
 	// Set the computing type in the computing configuration
 	b.computingConfiguration.Type = computingType
 
@@ -49,6 +51,6 @@ func (b *ComputingBuilder) WithComputingType(computingType configs.ComputingType
 }
 
 // Build returns the configured Computing instance.
-func (b *ComputingBuilder) Build() *Computing {
+func (b *DefaultComputingBuilder) Build() *Computing {
 	return b.useComputing // Return the pointer to Computing
 }

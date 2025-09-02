@@ -1,9 +1,10 @@
 package links
 
 import (
+	"log"
+
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/pkg/types"
-	"log"
 )
 
 // IslProtocolBuilder constructs inter-satellite link protocols based on config
@@ -23,7 +24,7 @@ func NewIslProtocolBuilder(cfg configs.InterSatelliteLinkConfig) *IslProtocolBui
 }
 
 // Build selects and wraps the desired link protocol
-func (b *IslProtocolBuilder) Build() types.IInterSatelliteLinkProtocol {
+func (b *IslProtocolBuilder) Build() types.InterSatelliteLinkProtocol {
 	switch b.config.Protocol {
 	case "mst":
 		return NewIslFilterProtocol(b.getMst())

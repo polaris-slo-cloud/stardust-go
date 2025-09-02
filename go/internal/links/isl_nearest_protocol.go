@@ -10,6 +10,8 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+var _ types.InterSatelliteLinkProtocol = (*IslNearestProtocol)(nil)
+
 // IslNearestProtocol connects a node to its N nearest neighbors using ISLs.
 type IslNearestProtocol struct {
 	config    configmod.InterSatelliteLinkConfig

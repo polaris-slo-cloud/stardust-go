@@ -22,13 +22,13 @@ type SatelliteBuilder struct {
 	epoch             time.Time
 
 	routerBuilder    *routing.RouterBuilder
-	computingBuilder *computing.ComputingBuilder
+	computingBuilder *computing.DefaultComputingBuilder
 	islBuilder       *links.IslProtocolBuilder
 	islConfig        configs.InterSatelliteLinkConfig // Store the ISL config
 }
 
 // NewSatelliteBuilder creates a new SatelliteBuilder with required dependencies.
-func NewSatelliteBuilder(router *routing.RouterBuilder, computing *computing.ComputingBuilder, islConfig configs.InterSatelliteLinkConfig) *SatelliteBuilder {
+func NewSatelliteBuilder(router *routing.RouterBuilder, computing *computing.DefaultComputingBuilder, islConfig configs.InterSatelliteLinkConfig) *SatelliteBuilder {
 	return &SatelliteBuilder{
 		routerBuilder:    router,
 		computingBuilder: computing,

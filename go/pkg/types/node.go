@@ -14,5 +14,5 @@ type Node interface {
 
 type NodeWithISL interface {
 	Node
-	InterSatelliteLinkProtocol() IInterSatelliteLinkProtocol
+	InterSatelliteLinkProtocol() InterSatelliteLinkProtocol
 }

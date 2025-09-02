@@ -20,7 +20,7 @@ var _ types.SimulationController = (*SimulationService)(nil)
 type SimulationService struct {
 	config           configs.SimulationConfig
 	routerBuilder    *routing.RouterBuilder
-	computingBuilder *computing.ComputingBuilder
+	computingBuilder *computing.DefaultComputingBuilder
 
 	all         []types.Node
 	satellites  []*node.Satellite
@@ -38,7 +38,7 @@ type SimulationService struct {
 func NewSimulationService(
 	config configs.SimulationConfig,
 	router *routing.RouterBuilder,
-	computing *computing.ComputingBuilder,
+	computing *computing.DefaultComputingBuilder,
 ) *SimulationService {
 	return &SimulationService{
 		config:           config,

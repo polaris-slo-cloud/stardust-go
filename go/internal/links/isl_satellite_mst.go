@@ -10,6 +10,8 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+var _ types.InterSatelliteLinkProtocol = (*IslSatelliteCentricMstProtocol)(nil)
+
 // IslSatelliteCentricMstProtocol implements a satellite-centric MST algorithm
 // for managing inter-satellite links. It ensures links are established optimally
 // based on distance, using a priority queue to build the MST.
