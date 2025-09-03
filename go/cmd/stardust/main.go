@@ -8,6 +8,7 @@ import (
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/computing"
 	"github.com/keniack/stardustGo/internal/deployment"
+	"github.com/keniack/stardustGo/internal/ground"
 	"github.com/keniack/stardustGo/internal/routing"
 	"github.com/keniack/stardustGo/internal/satellite"
 	"github.com/keniack/stardustGo/internal/simulation"
@@ -27,16 +28,20 @@ func main() {
 	}
 
 	// Step 2: Build computing builder with configured strategies
-	computingBuilder := computing.NewComputingBuilder(cfg.Computing[0])
+	computingBuilder := computing.NewComputingBuilder(cfg.Computing)
 
 	// Step 3: Build router builder
 	routerBuilder := routing.NewRouterBuilder(cfg.Router)
 
-	// Step 4: Initialize the satellite builder
+	// Step 4.1: Initialize the satellite builder
 	satBuilder := satellite.NewSatelliteBuilder(routerBuilder, computingBuilder, cfg.ISL)
 	tleLoader := satellite.NewTleLoader(cfg.ISL, satBuilder)
 
-	// Step 4.1: Initialize constellation loader and register TLE loader
+	// Step 4.2: Initialize the ground station loader
+	groundStationBuilder := ground.NewGroundStationBuilder(cfg.Simulation.SimulationStartTime, routerBuilder, computingBuilder)
+	ymlLoader := ground.NewGroundStationYmlLoader(cfg.Ground, groundStationBuilder)
+
+	// Step 4.3: Initialize constellation loader and register TLE loader
 	constellationLoader := satellite.NewSatelliteConstellationLoader()
 	constellationLoader.RegisterDataSourceLoader("tle", tleLoader)
 
@@ -48,9 +53,15 @@ func main() {
 	simService.Inject(orchestrator)
 
 	// Step 7: Load satellites using the loader service
-	loaderService := satellite.NewLoaderService(cfg.ISL, satBuilder, constellationLoader, simService, fmt.Sprintf("./resources/%s/%s", cfg.Simulation.SatelliteDataSourceType, cfg.Simulation.SatelliteDataSource), cfg.Simulation.SatelliteDataSourceType)
+	loaderService := satellite.NewSatelliteLoaderService(cfg.ISL, satBuilder, constellationLoader, simService, fmt.Sprintf("./resources/%s/%s", cfg.Simulation.SatelliteDataSourceType, cfg.Simulation.SatelliteDataSource), cfg.Simulation.SatelliteDataSourceType)
 	if err := loaderService.Start(); err != nil {
 		log.Fatalf("Failed to load satellites: %v", err)
+	}
+
+	// Step 8: Load ground stations using the ground station loader service
+	groundLoaderService := ground.NewGroundStationLoaderService(simService, groundStationBuilder, ymlLoader, fmt.Sprintf("./resources/%s/%s", cfg.Simulation.GroundStationDataSourceType, cfg.Simulation.GroundStationDataSource), cfg.Simulation.GroundStationDataSourceType)
+	if err := groundLoaderService.Start(); err != nil {
+		log.Fatalf("Failed to load ground stations: %v", err)
 	}
 
 	// Step 8: Start the simulation loop or run individual code
@@ -60,6 +71,8 @@ func main() {
 	} else {
 		log.Println("Simulation loaded. Not autorunning as StepInterval < 0.")
 		simService.StepBySeconds(60) // Example: step by 60 seconds
+		var sats = simService.GetGroundStations()
+		log.Println(len(sats), "satellites in simulation.")
 		log.Println("Simulation stepped by 60 seconds.")
 	}
 }

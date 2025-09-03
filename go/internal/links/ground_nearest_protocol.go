@@ -21,7 +21,7 @@ type GroundSatelliteNearestProtocol struct {
 }
 
 // NewGroundSatelliteNearestProtocol creates a new protocol with an initial list of satellites.
-func NewGroundSatelliteNearestProtocol(satellites []types.Node) *GroundSatelliteNearestProtocol {
+func NewGroundSatelliteNearestProtocol(satellites []types.Node) types.GroundSatelliteLinkProtocol {
 	return &GroundSatelliteNearestProtocol{
 		satellites: satellites,
 	}
@@ -114,11 +114,10 @@ func (p *GroundSatelliteNearestProtocol) Established() []types.Link {
 }
 
 // Link returns the currently active GroundLink.
-func (p *GroundSatelliteNearestProtocol) Link() *types.Link {
+func (p *GroundSatelliteNearestProtocol) Link() types.Link {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	var link types.Link = p.link
-	return &link
+	return p.link
 }
 
 // AddSatellite adds a satellite to the trackable list.

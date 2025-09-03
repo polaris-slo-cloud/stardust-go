@@ -12,13 +12,6 @@ import (
 
 var _ types.Node = (*GroundStation)(nil)
 
-// GroundSatelliteLinkProtocol defines the interface for managing ground-to-satellite link behavior
-type GroundSatelliteLinkProtocol interface {
-	Mount(station *GroundStation)
-	UpdateLink() error
-	Link() *linktypes.GroundLink
-}
-
 // GroundStation represents an Earth-based node that links to satellites
 // It updates its position over time and tracks the nearest satellites
 type GroundStation struct {
@@ -27,7 +20,7 @@ type GroundStation struct {
 	Latitude                    float64
 	Longitude                   float64
 	SimulationStartTime         time.Time
-	GroundSatelliteLinkProtocol GroundSatelliteLinkProtocol
+	GroundSatelliteLinkProtocol types.GroundSatelliteLinkProtocol
 
 	Position types.Vector
 	Link     *linktypes.GroundLink
@@ -35,15 +28,15 @@ type GroundStation struct {
 }
 
 // NewGroundStation creates and initializes a new ground station with link protocol and position
-func NewGroundStation(name string, lon, lat float64, protocol GroundSatelliteLinkProtocol, simStart time.Time, router types.Router, computing types.Computing) *GroundStation {
+func NewGroundStation(name string, lat float64, lon float64, protocol types.GroundSatelliteLinkProtocol, simStart time.Time, router types.Router, computing types.Computing) *GroundStation {
 	gs := &GroundStation{
 		BaseNode: BaseNode{
 			Name:      name,
 			Router:    router,
 			Computing: computing,
 		},
-		Longitude:                   lon,
 		Latitude:                    lat,
+		Longitude:                   lon,
 		SimulationStartTime:         simStart,
 		GroundSatelliteLinkProtocol: protocol,
 	}

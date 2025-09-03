@@ -73,6 +73,22 @@ func (s *SimulationService) InjectSatellites(satellites []types.Node) error {
 	return nil
 }
 
+// InjectGroundStations adds the loaded ground stations to the simulation scope
+func (s *SimulationService) InjectGroundStations(groundStations []types.Node) error {
+	s.groundNodes = make([]*node.GroundStation, 0, len(groundStations))
+	for _, n := range groundStations {
+		gs, ok := n.(*node.GroundStation)
+		if !ok {
+			return fmt.Errorf("InjectGroundStations: expected *node.GroundStation but got %T", n)
+		}
+		s.groundNodes = append(s.groundNodes, gs)
+		s.all = append(s.all, gs) // Add ground station as generic nodes
+	}
+
+	log.Printf("Injected %d ground stations into simulation", len(s.satellites))
+	return nil
+}
+
 // StartAutorun begins the simulation loop in autorun mode
 func (s *SimulationService) StartAutorun() <-chan struct{} {
 	s.lock.Lock()
@@ -172,4 +188,24 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 	time.Sleep(1 * time.Second) // Simulate step duration
 
 	s.running = false
+}
+
+func (s *SimulationService) GetAllNodes() []types.Node {
+	return s.all
+}
+
+func (s *SimulationService) GetSatellites() []types.Node {
+	nodes := make([]types.Node, len(s.satellites))
+	for i, sat := range s.satellites {
+		nodes[i] = sat
+	}
+	return nodes
+}
+
+func (s *SimulationService) GetGroundStations() []types.Node {
+	nodes := make([]types.Node, len(s.groundNodes))
+	for i, gs := range s.groundNodes {
+		nodes[i] = gs
+	}
+	return nodes
 }

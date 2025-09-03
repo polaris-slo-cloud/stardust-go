@@ -7,8 +7,8 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
-// LoaderService wires the constellation loader and triggers simulation startup.
-type LoaderService struct {
+// SatelliteLoaderService wires the constellation loader and triggers simulation startup.
+type SatelliteLoaderService struct {
 	controller            types.SimulationController
 	constellationLoader   *SatelliteConstellationLoader
 	tleLoader             *TleLoader
@@ -18,19 +18,19 @@ type LoaderService struct {
 	satelliteSourceFormat string
 }
 
-// NewLoaderService initializes all required loaders and binds them.
-func NewLoaderService(
+// NewSatelliteLoaderService initializes all required loaders and binds them.
+func NewSatelliteLoaderService(
 	config configs.InterSatelliteLinkConfig,
 	builder *SatelliteBuilder,
 	loader *SatelliteConstellationLoader,
 	controller types.SimulationController,
 	dataSourcePath string,
 	sourceFormat string,
-) *LoaderService {
+) *SatelliteLoaderService {
 	tleLoader := NewTleLoader(config, builder)
 	loader.RegisterDataSourceLoader("tle", tleLoader)
 
-	return &LoaderService{
+	return &SatelliteLoaderService{
 		controller:            controller,
 		constellationLoader:   loader,
 		tleLoader:             tleLoader,
@@ -42,7 +42,7 @@ func NewLoaderService(
 }
 
 // Start loads satellites and injects them into the simulation
-func (s *LoaderService) Start() error {
+func (s *SatelliteLoaderService) Start() error {
 	log.Println("Starting LoaderService...")
 	satellites, err := s.constellationLoader.LoadSatelliteConstellation(s.satelliteDataSource, s.satelliteSourceFormat)
 	if err != nil {
