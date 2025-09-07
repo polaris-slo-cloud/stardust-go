@@ -3,14 +3,14 @@
   Lon: 15.4409
   Protocol: nearest
   Router: default
-  ComputingType: None
+  ComputingType: Cloud
 
 - Name: Vienna
   Lat: 48.2082
   Lon: 16.3738
   Protocol: nearest
   Router: default
-  ComputingType: Edge
+  ComputingType: Cloud
 
 - Name: Ljubljana
   Lat: 46.0569

@@ -25,6 +25,7 @@ type SimulationService struct {
 	all         []types.Node
 	satellites  []*node.Satellite
 	groundNodes []*node.GroundStation
+	plugins     []types.SimulationPlugin
 	simTime     time.Time
 	maxCores    int
 	lock        sync.Mutex
@@ -39,6 +40,7 @@ func NewSimulationService(
 	config configs.SimulationConfig,
 	router *routing.RouterBuilder,
 	computing *computing.DefaultComputingBuilder,
+	plugins []types.SimulationPlugin,
 ) *SimulationService {
 	return &SimulationService{
 		config:           config,
@@ -49,6 +51,7 @@ func NewSimulationService(
 		groundNodes:      []*node.GroundStation{},
 		simTime:          config.SimulationStartTime,
 		maxCores:         config.MaxCpuCores,
+		plugins:          plugins,
 	}
 }
 
@@ -185,6 +188,13 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 		// s.orchestrator.CheckReschedule()
 	}
 
+	// Execute post-step plugins
+	for _, plugin := range s.plugins {
+		if err := plugin.PostSimulationStep(s); err != nil {
+			log.Printf("Plugin %s PostSimulationStep error: %v", plugin.Name(), err)
+		}
+	}
+
 	time.Sleep(1 * time.Second) // Simulate step duration
 
 	s.running = false
@@ -208,4 +218,8 @@ func (s *SimulationService) GetGroundStations() []types.Node {
 		nodes[i] = gs
 	}
 	return nodes
+}
+
+func (s *SimulationService) GetSimulationTime() time.Time {
+	return s.simTime
 }

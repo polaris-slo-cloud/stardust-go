@@ -8,6 +8,8 @@ SimulationConfiguration:
   UsePreRouteCalc: false
   MaxCpuCores: 30
   SimulationStartTime: "2025-01-01T00:00:00Z"
+  Plugins:
+    - DummyPlugin
 InterSatelliteLinkConfig:
   Neighbours: 4
   Protocol: pst_loop

@@ -12,4 +12,5 @@ type SimulationController interface {
 	GetAllNodes() []Node
 	GetSatellites() []Node
 	GetGroundStations() []Node
+	GetSimulationTime() time.Time
 }
