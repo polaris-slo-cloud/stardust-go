@@ -5,12 +5,13 @@ package satellite
 
 import (
 	"fmt"
-	"github.com/keniack/stardustGo/internal/node"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/keniack/stardustGo/internal/node"
 )
 
 // SatelliteConstellationLoader manages data source loaders (e.g., TLE) and loads satellite data.
@@ -52,6 +53,9 @@ func (s *SatelliteConstellationLoader) LoadSatelliteConstellation(dataSource str
 
 	// Constellation awareness (connect to future links)
 	for i, sat := range satellites {
+		if len(sat.ISLProtocol.Links()) != i {
+			log.Printf("Satellite %s has %d ISL links", sat.GetName(), len(sat.ISLProtocol.Links()))
+		}
 		sat.ConfigureConstellation(satellites[i+1:])
 	}
 	log.Printf("Loaded %d satellites", len(satellites))

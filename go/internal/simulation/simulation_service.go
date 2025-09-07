@@ -14,7 +14,7 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
-var _ types.SimulationController = (*SimulationService)(nil)
+var _ SimulationController = (*SimulationService)(nil)
 
 // SimulationService handles simulation lifecycle and state updates
 type SimulationService struct {
@@ -172,6 +172,11 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 		go sat.ISLProtocol.UpdateLinks()
 	}
 
+	// Ground Link updates
+	for _, gs := range s.groundNodes {
+		go gs.GroundSatelliteLinkProtocol.UpdateLink()
+	}
+
 	// Routing and computation (if enabled)
 	if s.config.UsePreRouteCalc {
 		for _, sat := range s.satellites {
@@ -194,18 +199,10 @@ func (s *SimulationService) GetAllNodes() []types.Node {
 	return s.all
 }
 
-func (s *SimulationService) GetSatellites() []types.Node {
-	nodes := make([]types.Node, len(s.satellites))
-	for i, sat := range s.satellites {
-		nodes[i] = sat
-	}
-	return nodes
+func (s *SimulationService) GetSatellites() []*node.Satellite {
+	return s.satellites
 }
 
-func (s *SimulationService) GetGroundStations() []types.Node {
-	nodes := make([]types.Node, len(s.groundNodes))
-	for i, gs := range s.groundNodes {
-		nodes[i] = gs
-	}
-	return nodes
+func (s *SimulationService) GetGroundStations() []*node.GroundStation {
+	return s.groundNodes
 }

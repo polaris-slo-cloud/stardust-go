@@ -2,7 +2,6 @@ package node
 
 import (
 	"math"
-	"sync"
 	"time"
 
 	"github.com/keniack/stardustGo/internal/links/linktypes"
@@ -54,6 +53,7 @@ func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, 
 	}
 
 	isl.Mount(s)
+	router.Mount(s)
 	s.UpdatePosition(simTime)
 	return s
 }
@@ -95,6 +95,18 @@ func (s *Satellite) GetLinks() []types.Link {
 	}
 
 	return allLinks
+}
+
+func (s *Satellite) GetEstablishedLinks() []types.Link {
+	var establishedLinks []types.Link
+	s.ISLProtocol.Established()
+	for _, link := range s.ISLProtocol.Established() {
+		establishedLinks = append(establishedLinks, link)
+	}
+	for _, groundLink := range s.GroundLinks {
+		establishedLinks = append(establishedLinks, groundLink)
+	}
+	return establishedLinks
 }
 
 // UpdatePosition calculates the satellite's position in the ECI frame based on orbital elements and simulation time
@@ -162,29 +174,17 @@ func computeTrueAnomaly(E, ecc float64) float64 {
 
 // ConfigureConstellation configures a constellation of satellites by linking them.
 func (s *Satellite) ConfigureConstellation(satellites []*Satellite) {
-	var wg sync.WaitGroup
-
-	// Launch a goroutine to handle the configuration asynchronously
-	go func() {
-		for _, satellite := range satellites {
-			// Skip if it's the same satellite (this) or if there's already a link
-			if satellite == s { // Or add more conditions here if needed (e.g., checking existing links)
-				continue
-			}
-
-			// Create a new ISL link between the current satellite and the other one
-			link := linktypes.NewIslLink(s, satellite)
-
-			// Locking to ensure thread safety while modifying ISLProtocol
-			s.ISLProtocol.AddLink(link)         // Add link to this satellite's ISL protocol
-			satellite.ISLProtocol.AddLink(link) // Add link to the other satellite's ISL protocol
-
-			// WaitGroup to ensure completion of all link additions
-			wg.Add(1)
-			wg.Done()
+	for _, satellite := range satellites {
+		// Skip if it's the same satellite (this) or if there's already a link
+		if satellite == s { // Or add more conditions here if needed (e.g., checking existing links)
+			continue
 		}
-	}()
 
-	// Wait for all the links to be added before returning
-	wg.Wait()
+		// Create a new ISL link between the current satellite and the other one
+		link := linktypes.NewIslLink(s, satellite)
+
+		// Locking to ensure thread safety while modifying ISLProtocol
+		s.ISLProtocol.AddLink(link)         // Add link to this satellite's ISL protocol
+		satellite.ISLProtocol.AddLink(link) // Add link to the other satellite's ISL protocol
+	}
 }

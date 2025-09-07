@@ -8,8 +8,9 @@ type Node interface {
 	GetName() string
 	PositionVector() Vector
 	DistanceTo(other Node) float64
-	GetLinks() []Link
 	UpdatePosition(simTime time.Time)
+	GetLinks() []Link
+	GetEstablishedLinks() []Link
 }
 
 type NodeWithISL interface {

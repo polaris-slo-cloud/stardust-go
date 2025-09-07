@@ -40,8 +40,9 @@ func NewGroundStation(name string, lat float64, lon float64, protocol types.Grou
 		SimulationStartTime:         simStart,
 		GroundSatelliteLinkProtocol: protocol,
 	}
-	gs.UpdatePositionFromElapsed(0)
 	protocol.Mount(gs)
+	router.Mount(gs)
+	gs.UpdatePositionFromElapsed(0)
 	return gs
 }
 
@@ -113,4 +114,8 @@ func (gs *GroundStation) FindNearestSatellite(sats []*Satellite) (*Satellite, er
 
 func (gs *GroundStation) GetLinks() []types.Link {
 	return []types.Link{gs.GroundSatelliteLinkProtocol.Link()}
+}
+
+func (gs *GroundStation) GetEstablishedLinks() []types.Link {
+	return gs.GetLinks()
 }
