@@ -10,7 +10,7 @@ SimulationConfiguration:
   SimulationStartTime: "2025-01-01T00:00:00Z"
 InterSatelliteLinkConfig:
   Neighbours: 4
-  Protocol: pst_loop
+  Protocol: nearest
 GroundLinkConfig:
   Protocol: nearest
 RouterConfig:

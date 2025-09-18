@@ -19,7 +19,7 @@ type IslPstProtocol struct {
 	established []*linktypes.IslLink            // Currently active links
 
 	satellite      types.Node                // The satellite this protocol is mounted to
-	satellites     []types.NodeWithISL       // All reachable satellites
+	satellites     []types.Node              // All reachable satellites
 	representative map[types.Node]types.Node // Union-find mapping for MST cycles
 
 	position types.Vector  // Last position we calculated for
@@ -120,9 +120,9 @@ func (p *IslPstProtocol) UpdateLinks() ([]types.Link, error) {
 		satSet[l.Node1] = true
 		satSet[l.Node2] = true
 	}
-	p.satellites = []types.NodeWithISL{}
+	p.satellites = []types.Node{}
 	for s := range satSet {
-		if node, ok := s.(types.NodeWithISL); ok {
+		if node, ok := s.(types.Node); ok {
 			p.satellites = append(p.satellites, node)
 			p.representative[node] = node
 		}
@@ -133,7 +133,7 @@ func (p *IslPstProtocol) UpdateLinks() ([]types.Link, error) {
 	mstLinks := []*linktypes.IslLink{}
 
 	for _, sat := range p.satellites {
-		links := sat.InterSatelliteLinkProtocol().Links()
+		links := sat.GetLinkNodeProtocol().Links()
 		valid := []*linktypes.IslLink{}
 		for _, l := range links {
 			if isl, ok := l.(*linktypes.IslLink); ok && isl.IsReachable() {

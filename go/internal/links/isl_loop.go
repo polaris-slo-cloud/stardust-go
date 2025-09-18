@@ -94,14 +94,10 @@ func (p *IslAddLoopProtocol) UpdateLinks() ([]types.Link, error) {
 				continue
 			}
 
-			n1, ok1 := isl.Node1.(types.NodeWithISL)
-			n2, ok2 := isl.Node2.(types.NodeWithISL)
-			if !ok1 || !ok2 {
-				continue
-			}
-
-			if !shouldLoop(n1.InterSatelliteLinkProtocol().Established(), p.config.Neighbours) ||
-				!shouldLoop(n2.InterSatelliteLinkProtocol().Established(), p.config.Neighbours) {
+			n1 := isl.Node1
+			n2 := isl.Node2
+			if !shouldLoop(n1.GetLinkNodeProtocol().Established(), p.config.Neighbours) ||
+				!shouldLoop(n2.GetLinkNodeProtocol().Established(), p.config.Neighbours) {
 				continue
 			}
 
@@ -111,10 +107,10 @@ func (p *IslAddLoopProtocol) UpdateLinks() ([]types.Link, error) {
 		}
 
 		if best != nil {
-			n1 := best.link.Node1.(types.NodeWithISL)
-			n2 := best.link.Node2.(types.NodeWithISL)
-			_ = n1.InterSatelliteLinkProtocol().ConnectLink(best.link)
-			_ = n2.InterSatelliteLinkProtocol().ConnectLink(best.link)
+			n1 := best.link.Node1
+			n2 := best.link.Node2
+			_ = n1.GetLinkNodeProtocol().ConnectLink(best.link)
+			_ = n2.GetLinkNodeProtocol().ConnectLink(best.link)
 			best.link.SetEstablished(true)
 			established = append(established, best.link)
 		}

@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keniack/stardustGo/internal/links/linktypes"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
@@ -23,7 +22,6 @@ type GroundStation struct {
 	GroundSatelliteLinkProtocol types.GroundSatelliteLinkProtocol
 
 	Position types.Vector
-	Link     *linktypes.GroundLink
 	mu       sync.Mutex
 }
 
@@ -65,7 +63,7 @@ func (gs *GroundStation) UpdatePosition(simTime time.Time) {
 
 	timeElapsed := simTime.Sub(gs.SimulationStartTime).Seconds()
 	gs.UpdatePositionFromElapsed(timeElapsed)
-	gs.GroundSatelliteLinkProtocol.UpdateLink()
+	gs.GroundSatelliteLinkProtocol.UpdateLinks()
 }
 
 // UpdatePositionFromElapsed calculates Earth-centered coordinates using geodetic formula
@@ -95,6 +93,10 @@ func (gs *GroundStation) UpdatePositionFromElapsed(timeElapsed float64) {
 	gs.Position = types.Vector{X: xRot, Y: yRot, Z: zRot}
 }
 
+func (gs *GroundStation) GetLinkNodeProtocol() types.LinkNodeProtocol {
+	return gs.GroundSatelliteLinkProtocol
+}
+
 // FindNearestSatellite returns the closest satellite in a given list
 func (gs *GroundStation) FindNearestSatellite(sats []*Satellite) (*Satellite, error) {
 	if len(sats) == 0 {
@@ -113,9 +115,9 @@ func (gs *GroundStation) FindNearestSatellite(sats []*Satellite) (*Satellite, er
 }
 
 func (gs *GroundStation) GetLinks() []types.Link {
-	return []types.Link{gs.GroundSatelliteLinkProtocol.Link()}
+	return gs.GroundSatelliteLinkProtocol.Links()
 }
 
 func (gs *GroundStation) GetEstablishedLinks() []types.Link {
-	return gs.GetLinks()
+	return gs.GroundSatelliteLinkProtocol.Established()
 }

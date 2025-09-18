@@ -11,9 +11,5 @@ type Node interface {
 	UpdatePosition(simTime time.Time)
 	GetLinks() []Link
 	GetEstablishedLinks() []Link
-}
-
-type NodeWithISL interface {
-	Node
-	InterSatelliteLinkProtocol() InterSatelliteLinkProtocol
+	GetLinkNodeProtocol() LinkNodeProtocol
 }

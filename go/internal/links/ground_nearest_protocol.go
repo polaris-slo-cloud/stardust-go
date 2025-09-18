@@ -60,24 +60,24 @@ func (p *GroundSatelliteNearestProtocol) DisconnectSatellite(s types.Node) error
 }
 
 // UpdateLink selects the closest satellite and sets up the ground link accordingly.
-func (p *GroundSatelliteNearestProtocol) UpdateLink() error {
+func (p *GroundSatelliteNearestProtocol) UpdateLinks() ([]types.Link, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	if p.groundStation == nil {
-		return errors.New("protocol not mounted to ground station")
+		return nil, errors.New("protocol not mounted to ground station")
 	}
 	if len(p.satellites) == 0 {
-		return errors.New("no satellites available")
+		return nil, errors.New("no satellites available")
 	}
 
 	sort.Slice(p.satellites, func(i, j int) bool {
 		return p.groundStation.DistanceTo(p.satellites[i]) < p.groundStation.DistanceTo(p.satellites[j])
 	})
 
-	nearest := p.satellites[0]
+	var nearest = p.satellites[0]
 	if nearest == nil || (p.link != nil && p.link.Satellite.GetName() == nearest.GetName()) {
-		return nil // Already linked to the nearest
+		return []types.Link{p.link}, nil // Already linked to the nearest
 	}
 
 	old := p.link
@@ -95,13 +95,11 @@ func (p *GroundSatelliteNearestProtocol) UpdateLink() error {
 		}
 	}
 
-	return nil
+	return []types.Link{p.link}, nil
 }
 
 // Links returns the current active link if any.
 func (p *GroundSatelliteNearestProtocol) Links() []types.Link {
-	p.mu.Lock()
-	defer p.mu.Unlock()
 	if p.link != nil {
 		return []types.Link{p.link}
 	}

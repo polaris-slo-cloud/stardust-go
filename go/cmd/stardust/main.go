@@ -72,11 +72,14 @@ func main() {
 		log.Println("Simulation loaded. Not autorunning as StepInterval < 0.")
 		simService.StepBySeconds(60) // Example: step by 60 seconds
 		var sats = simService.GetSatellites()
-		var route, err = sats[0].BaseNode.Router.RouteAsyncToNode(sats[1], nil)
+		var sat1 = sats[0]
+		var sat2 = sats[1]
+		var route, err = sat1.BaseNode.Router.RouteAsyncToNode(sat2, nil)
 		if err != nil {
 			log.Println("Routing error:", err)
 		} else {
-			log.Println("Route from", sats[0].GetName(), "to", sats[1].GetName(), ":", route)
+			log.Println("Route from", sat1.GetName(), "to", sat2.GetName(), "in", route.Latency(), "ms")
+			log.Println(route)
 		}
 		log.Println(len(sats), "satellites in simulation.")
 		log.Println("Simulation stepped by 60 seconds.")

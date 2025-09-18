@@ -127,6 +127,10 @@ func (s *Satellite) UpdatePosition(simTime time.Time) {
 	s.Position = applyOrbitalTransformations(xp, yp, zp, s.InclinationRad, s.ArgumentOfPerigeeRad, s.RightAscensionRad)
 }
 
+func (s *Satellite) GetLinkNodeProtocol() types.LinkNodeProtocol {
+	return s.ISLProtocol
+}
+
 // ApplyOrbitalTransformations converts orbital plane coordinates into the Earth-Centered Inertial (ECI) frame
 func applyOrbitalTransformations(x, y, z, iRad, omegaRad, raanRad float64) types.Vector {
 	cosRAAN := math.Cos(raanRad)

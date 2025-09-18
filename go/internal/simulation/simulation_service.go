@@ -167,14 +167,9 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 	}
 	wg.Wait()
 
-	// ISL updates (Inter-Satellite Links)
-	for _, sat := range s.satellites {
-		go sat.ISLProtocol.UpdateLinks()
-	}
-
-	// Ground Link updates
-	for _, gs := range s.groundNodes {
-		go gs.GroundSatelliteLinkProtocol.UpdateLink()
+	// Link updates (ISL and ground links)
+	for _, node := range s.all {
+		go node.GetLinkNodeProtocol().UpdateLinks()
 	}
 
 	// Routing and computation (if enabled)

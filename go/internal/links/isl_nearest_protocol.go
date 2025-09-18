@@ -96,9 +96,6 @@ func (p *IslNearestProtocol) DisconnectSatellite(s types.Node) error {
 
 // UpdateLinks reconnects to the closest N reachable satellites.
 func (p *IslNearestProtocol) UpdateLinks() ([]types.Link, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
 	if p.satellite == nil {
 		return nil, errors.New("protocol not mounted")
 	}
@@ -133,9 +130,7 @@ func (p *IslNearestProtocol) UpdateLinks() ([]types.Link, error) {
 	for _, l := range selected {
 		if _, seen := prevOut[l]; !seen {
 			if other := l.GetOther(p.satellite); other != nil {
-				if islNode, ok := other.(types.NodeWithISL); ok {
-					_ = islNode.InterSatelliteLinkProtocol().ConnectLink(l)
-				}
+				other.GetLinkNodeProtocol().ConnectLink(l)
 			}
 			l.SetEstablished(true)
 		} else {
@@ -146,9 +141,7 @@ func (p *IslNearestProtocol) UpdateLinks() ([]types.Link, error) {
 	// Disconnect dropped links
 	for l := range prevOut {
 		if other := l.GetOther(p.satellite); other != nil {
-			if islNode, ok := other.(types.NodeWithISL); ok {
-				_ = islNode.InterSatelliteLinkProtocol().DisconnectLink(l)
-			}
+			other.GetLinkNodeProtocol().DisconnectLink(l)
 		}
 		l.SetEstablished(false)
 	}
@@ -174,8 +167,6 @@ func (p *IslNearestProtocol) Links() []types.Link {
 
 // Established returns all active links (incoming or outgoing).
 func (p *IslNearestProtocol) Established() []types.Link {
-	p.mu.Lock()
-	defer p.mu.Unlock()
 	seen := make(map[*linkmod.IslLink]bool)
 	for _, l := range p.outgoing {
 		seen[l] = true
