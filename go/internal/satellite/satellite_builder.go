@@ -32,7 +32,8 @@ func NewSatelliteBuilder(router *routing.RouterBuilder, computing *computing.Def
 	return &SatelliteBuilder{
 		routerBuilder:    router,
 		computingBuilder: computing,
-		islConfig:        islConfig, // Initialize the ISL config
+		islConfig:        islConfig,                              // Initialize the ISL config
+		islBuilder:       links.NewIslProtocolBuilder(islConfig), // Pass the ISL config to the builder
 	}
 }
 
@@ -79,7 +80,7 @@ func (b *SatelliteBuilder) SetEpoch(epoch time.Time) *SatelliteBuilder {
 // ConfigureISL now uses the ISL config passed to the builder
 func (b *SatelliteBuilder) ConfigureISL(fn func(builder *links.IslProtocolBuilder) *links.IslProtocolBuilder) *SatelliteBuilder {
 	// Pass the ISL config to the builder
-	b.islBuilder = fn(links.NewIslProtocolBuilder(b.islConfig))
+	b.islBuilder = fn(b.islBuilder)
 	return b
 }
 

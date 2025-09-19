@@ -85,7 +85,7 @@ func (s *SimulationService) InjectGroundStations(groundStations []types.Node) er
 		s.all = append(s.all, gs) // Add ground station as generic nodes
 	}
 
-	log.Printf("Injected %d ground stations into simulation", len(s.satellites))
+	log.Printf("Injected %d ground stations into simulation", len(s.groundNodes))
 	return nil
 }
 

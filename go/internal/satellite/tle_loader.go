@@ -4,14 +4,15 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/keniack/stardustGo/configs"
-	"github.com/keniack/stardustGo/internal/links"
-	"github.com/keniack/stardustGo/internal/node"
 	"io"
 	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/keniack/stardustGo/configs"
+	"github.com/keniack/stardustGo/internal/links"
+	"github.com/keniack/stardustGo/internal/node"
 )
 
 const (
@@ -91,7 +92,7 @@ func (l *TleLoader) Load(r io.Reader) ([]*node.Satellite, error) {
 			SetMeanMotion(meanMotion).
 			SetEpoch(epoch).
 			ConfigureISL(func(b *links.IslProtocolBuilder) *links.IslProtocolBuilder {
-				return links.NewIslProtocolBuilder(l.config)
+				return b
 			})
 
 		sat := builder.Build()

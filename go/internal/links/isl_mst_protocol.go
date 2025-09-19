@@ -7,6 +7,7 @@ import (
 
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/helper"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
@@ -17,13 +18,14 @@ var _ types.InterSatelliteLinkProtocol = (*IslMstProtocol)(nil)
 type IslMstProtocol struct {
 	setLink         map[*linktypes.IslLink]bool // All candidate links
 	established     []*linktypes.IslLink        // Currently active MST links
+	resultCache     []types.Link                // Cached result of last UpdateLinks
 	satellite       types.Node                  // Local satellite
 	satellites      []types.Node                // All satellites involved
 	representatives map[string]string           // Disjoint-set forest (by node name)
 
-	position types.Vector // Last position when links were updated
-	mu       sync.Mutex   // Protects concurrent access
-	readyCh  chan struct{}
+	position   types.Vector             // Last position when links were updated
+	mu         sync.Mutex               // Protects concurrent access
+	resetEvent *helper.ManualResetEvent // Signals when ready for reuse
 }
 
 // NewIslMstProtocol initializes an empty protocol instance.
@@ -32,7 +34,7 @@ func NewIslMstProtocol() *IslMstProtocol {
 		setLink:         make(map[*linktypes.IslLink]bool),
 		established:     []*linktypes.IslLink{},
 		representatives: make(map[string]string),
-		readyCh:         make(chan struct{}, 1),
+		resetEvent:      helper.NewManualResetEvent(true),
 	}
 }
 
@@ -86,26 +88,20 @@ func (p *IslMstProtocol) DisconnectLink(link types.Link) error {
 
 // UpdateLinks builds a new MST if the satellite's position has changed.
 func (p *IslMstProtocol) UpdateLinks() ([]types.Link, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
 	if p.satellite == nil {
 		return nil, errors.New("satellite not mounted")
 	}
 
+	p.mu.Lock()
 	// Return cached if position hasn't changed
 	if p.position.Equals(p.satellite.PositionVector()) {
-		select {
-		case <-p.readyCh:
-		default:
-		}
-		result := make([]types.Link, len(p.established))
-		for i, l := range p.established {
-			result[i] = l
-		}
-		return result, nil
+		p.mu.Unlock()
+		p.resetEvent.Wait() // Wait until ready
+		return p.resultCache, nil
 	}
 	p.position = p.satellite.PositionVector()
+	p.resetEvent.Reset() // Mark as busy
+	p.mu.Unlock()
 
 	// Collect all satellites from links
 	satMap := map[string]types.Node{}
@@ -168,17 +164,12 @@ func (p *IslMstProtocol) UpdateLinks() ([]types.Link, error) {
 	}
 	p.established = mst
 
-	// Signal readiness for reuse
-	select {
-	case p.readyCh <- struct{}{}:
-	default:
-	}
-
-	result := make([]types.Link, len(mst))
+	p.resultCache = make([]types.Link, len(mst))
 	for i, l := range mst {
-		result[i] = l
+		p.resultCache[i] = l
 	}
-	return result, nil
+	p.resetEvent.Set() // Mark as ready
+	return p.resultCache, nil
 }
 
 // getRepresentative finds the disjoint-set root for a node.
