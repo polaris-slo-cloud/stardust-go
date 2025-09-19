@@ -12,4 +12,5 @@ type Node interface {
 	GetLinks() []Link
 	GetEstablishedLinks() []Link
 	GetLinkNodeProtocol() LinkNodeProtocol
+	GetRouter() Router
 }

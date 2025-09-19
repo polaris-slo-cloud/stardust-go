@@ -121,3 +121,7 @@ func (gs *GroundStation) GetLinks() []types.Link {
 func (gs *GroundStation) GetEstablishedLinks() []types.Link {
 	return gs.GroundSatelliteLinkProtocol.Established()
 }
+
+func (gs *GroundStation) GetRouter() types.Router {
+	return gs.Router
+}

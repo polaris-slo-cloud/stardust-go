@@ -174,8 +174,8 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 
 	// Routing and computation (if enabled)
 	if s.config.UsePreRouteCalc {
-		for _, sat := range s.satellites {
-			go sat.Router.CalculateRoutingTableAsync()
+		for _, node := range s.all {
+			go node.GetRouter().CalculateRoutingTableAsync()
 		}
 	}
 

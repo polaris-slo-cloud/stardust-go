@@ -5,7 +5,7 @@ SimulationConfiguration:
   SatelliteDataSourceType: tle
   GroundStationDataSource: ground_stations.yml
   GroundStationDataSourceType: yml
-  UsePreRouteCalc: false
+  UsePreRouteCalc: true
   MaxCpuCores: 30
   SimulationStartTime: "2025-01-01T00:00:00Z"
 InterSatelliteLinkConfig:
@@ -14,7 +14,7 @@ InterSatelliteLinkConfig:
 GroundLinkConfig:
   Protocol: nearest
 RouterConfig:
-  Protocol: a-star
+  Protocol: dijkstra
 ComputingConfiguration:
   - Cores: 0
     Memory: 0

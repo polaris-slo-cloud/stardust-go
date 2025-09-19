@@ -192,3 +192,7 @@ func (s *Satellite) ConfigureConstellation(satellites []*Satellite) {
 		satellite.ISLProtocol.AddLink(link) // Add link to the other satellite's ISL protocol
 	}
 }
+
+func (s *Satellite) GetRouter() types.Router {
+	return s.Router
+}
