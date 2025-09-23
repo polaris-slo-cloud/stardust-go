@@ -73,21 +73,21 @@ func main() {
 		for range 10 {
 			simService.StepBySeconds(60) // Example: step by 60 seconds
 			var sats = simService.GetGroundStations()
-			var sat1 = sats[0]
-			var sat2 = sats[80]
-			var l1 = sat1.GetLinkNodeProtocol().Established()[0]
-			var l2 = sat2.GetLinkNodeProtocol().Established()[0]
-			var x, _ = l1.GetOther(sat1).GetRouter().RouteAsyncToNode(l2.GetOther(sat2), nil)
-			var route, err = sat1.BaseNode.Router.RouteAsyncToNode(sat2, nil)
+			var ground1 = sats[0]
+			var ground2 = sats[80]
+			var l1 = ground1.GetLinkNodeProtocol().Established()[0]
+			var l2 = ground2.GetLinkNodeProtocol().Established()[0]
+			var route, err = ground1.BaseNode.Router.RouteAsyncToNode(ground2, nil)
+			var x, _ = l1.GetOther(ground1).GetRouter().RouteAsyncToNode(l2.GetOther(ground2), nil)
 			if err != nil {
 				log.Println("Routing error:", err)
 			} else {
-				log.Println("Route from", sat1.GetName(), "to", sat2.GetName(), "in", route.Latency(), "ms")
-				log.Println(route, x, l1.Latency(), l2.Latency())
-				log.Println(l1.GetOther(sat1).GetName(), "->", l2.GetOther(sat2).GetName())
-				log.Println(sat1.DistanceTo(sat2)/1000, "km apart")
-				log.Println(l1.Distance(), "km apart", sat2.DistanceTo(l1.GetOther(sat1)))
-				log.Println(l2.Distance(), "km apart", sat1.DistanceTo(l2.GetOther(sat2)))
+				log.Println("Route from", ground1.GetName(), "to", ground2.GetName(), "in", route.Latency(), "ms")
+				log.Println("Latency between uplink nodes:", x.Latency(), "ms")
+				log.Println(l1.GetOther(ground1).GetName(), "->", l2.GetOther(ground2).GetName())
+				log.Println(ground1.DistanceTo(ground2)/1000, "km apart")
+				log.Println(l1.Distance(), "km apart", ground2.DistanceTo(l1.GetOther(ground1)))
+				log.Println(l2.Distance(), "km apart", ground1.DistanceTo(l2.GetOther(ground2)))
 			}
 			log.Println(len(sats), "satellites in simulation.")
 			log.Println("Simulation stepped by 60 seconds.")

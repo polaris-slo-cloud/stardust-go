@@ -10,7 +10,7 @@ SimulationConfiguration:
   SimulationStartTime: "2025-01-01T00:00:00Z"
 InterSatelliteLinkConfig:
   Neighbours: 4
-  Protocol: mst_loop
+  Protocol: mst_smart_loop
 GroundLinkConfig:
   Protocol: nearest
 RouterConfig:

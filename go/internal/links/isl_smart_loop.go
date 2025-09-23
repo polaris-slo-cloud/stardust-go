@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/keniack/stardustGo/configs"
-	"github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/helper"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
@@ -19,16 +19,16 @@ type IslAddSmartLoopProtocol struct {
 	satellite   types.Node
 	position    types.Vector
 	mu          sync.Mutex
-	readyCh     chan struct{}
-	lastUpdated []types.Link
+	resultCache []types.Link
+	resetEvent  *helper.ManualResetEvent // Signals when ready for reuse
 }
 
 // NewIslAddSmartLoopProtocol creates a new smart loop-enhancing protocol
 func NewIslAddSmartLoopProtocol(inner types.InterSatelliteLinkProtocol, cfg configs.InterSatelliteLinkConfig) *IslAddSmartLoopProtocol {
 	return &IslAddSmartLoopProtocol{
-		inner:   inner,
-		config:  cfg,
-		readyCh: make(chan struct{}, 1),
+		inner:      inner,
+		config:     cfg,
+		resetEvent: helper.NewManualResetEvent(true),
 	}
 }
 
@@ -79,23 +79,22 @@ func (p *IslAddSmartLoopProtocol) Established() []types.Link {
 
 // UpdateLinks enhances the underlying protocol's MST with smart loops
 func (p *IslAddSmartLoopProtocol) UpdateLinks() ([]types.Link, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
 	if p.satellite == nil {
 		return nil, errors.New("satellite not mounted")
 	}
 
+	p.mu.Lock()
+	// Return cached if position hasn't changed
 	if p.position.Equals(p.satellite.PositionVector()) {
-		select {
-		case <-p.readyCh:
-		default:
-		}
-		return p.lastUpdated, nil
+		p.mu.Unlock()
+		p.resetEvent.Wait() // Wait until ready
+		return p.resultCache, nil
 	}
 	p.position = p.satellite.PositionVector()
+	p.resetEvent.Reset() // Mark as busy
+	p.mu.Unlock()
 
-	mstLinks, err := p.inner.UpdateLinks()
+	innerEstablished, err := p.inner.UpdateLinks()
 	if err != nil {
 		return nil, err
 	}
@@ -104,10 +103,8 @@ func (p *IslAddSmartLoopProtocol) UpdateLinks() ([]types.Link, error) {
 	uniqueLinks := make(map[types.Node]types.Link)
 
 	// Count how many times each satellite appears in links
-	for _, link := range mstLinks {
-		n1 := link.GetOther(nil)
-		n2 := link.GetOther(n1)
-
+	for _, link := range innerEstablished {
+		n1, n2 := link.Nodes()
 		for _, n := range []types.Node{n1, n2} {
 			satToLinks[n]++
 			if satToLinks[n] == 1 {
@@ -118,29 +115,30 @@ func (p *IslAddSmartLoopProtocol) UpdateLinks() ([]types.Link, error) {
 		}
 	}
 
+	var s types.Node
 	var additions []types.Link
-	for s := range uniqueLinks {
-		for _, candidate := range p.inner.Links() {
-			if isl, ok := candidate.(*linktypes.IslLink); ok && isl.Distance() <= configs.MaxISLDistance {
-				if isl.Node1 != s && isl.Node2 != s {
-					continue
-				}
-				other := isl.GetOther(s)
-				if other == nil || satToLinks[s] >= p.config.Neighbours || satToLinks[other] >= p.config.Neighbours {
-					continue
-				}
-				satToLinks[s]++
-				satToLinks[other]++
-				isl.SetEstablished(true)
-				additions = append(additions, isl)
+	for _, candidate := range p.inner.Links() {
+		if candidate.Distance() <= configs.MaxISLDistance {
+			n1, n2 := candidate.Nodes()
+			if uniqueLinks[n1] != nil {
+				s = n1
+			} else if uniqueLinks[n2] != nil {
+				s = n2
+			} else {
+				continue
 			}
+
+			other := candidate.GetOther(s)
+			if other == nil || satToLinks[s] >= p.config.Neighbours || satToLinks[other] >= p.config.Neighbours {
+				continue
+			}
+			satToLinks[s]++
+			satToLinks[other]++
+			additions = append(additions, candidate)
 		}
 	}
 
-	p.lastUpdated = append(mstLinks, additions...)
-	select {
-	case p.readyCh <- struct{}{}:
-	default:
-	}
-	return p.lastUpdated, nil
+	p.resultCache = append(innerEstablished, additions...)
+	p.resetEvent.Set() // Mark as ready
+	return p.resultCache, nil
 }
