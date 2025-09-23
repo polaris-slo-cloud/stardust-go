@@ -169,14 +169,24 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 
 	// Link updates (ISL and ground links)
 	for _, node := range s.all {
-		go node.GetLinkNodeProtocol().UpdateLinks()
+		wg.Add(1)
+		go func(n types.Node) {
+			defer wg.Done()
+			node.GetLinkNodeProtocol().UpdateLinks()
+		}(node)
 	}
+	wg.Wait()
 
 	// Routing and computation (if enabled)
 	if s.config.UsePreRouteCalc {
 		for _, node := range s.all {
-			go node.GetRouter().CalculateRoutingTableAsync()
+			wg.Add(1)
+			go func(n types.Node) {
+				defer wg.Done()
+				n.GetRouter().CalculateRoutingTableAsync()
+			}(node)
 		}
+		wg.Wait()
 	}
 
 	// Check if the orchestrator needs to reschedule

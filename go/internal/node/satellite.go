@@ -72,7 +72,7 @@ func (s *Satellite) PositionVector() types.Vector {
 
 // DistanceTo calculates the distance between this satellite and another node (satellite or ground station)
 func (s *Satellite) DistanceTo(other types.Node) float64 {
-	return s.Position.Sub(other.PositionVector()).Magnitude()
+	return s.Position.Subtract(other.PositionVector()).Magnitude()
 }
 
 func (s *Satellite) GetComputing() types.Computing {

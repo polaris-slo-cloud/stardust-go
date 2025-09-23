@@ -33,7 +33,7 @@ func NewGroundStationLoaderService(
 
 func (s *GroundStationLoaderService) Start() error {
 	log.Println("Starting LoaderService...")
-	groundStations, err := s.groundStationLoader.Load(s.groundStationDataSource)
+	groundStations, err := s.groundStationLoader.Load(s.groundStationDataSource, s.controller.GetSatellites())
 	if err != nil {
 		return err
 	}

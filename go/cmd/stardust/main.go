@@ -38,7 +38,7 @@ func main() {
 	tleLoader := satellite.NewTleLoader(cfg.ISL, satBuilder)
 
 	// Step 4.2: Initialize the ground station loader
-	groundStationBuilder := ground.NewGroundStationBuilder(cfg.Simulation.SimulationStartTime, routerBuilder, computingBuilder)
+	groundStationBuilder := ground.NewGroundStationBuilder(cfg.Simulation.SimulationStartTime, routerBuilder, computingBuilder, cfg.Ground)
 	ymlLoader := ground.NewGroundStationYmlLoader(cfg.Ground, groundStationBuilder)
 
 	// Step 4.3: Initialize constellation loader and register TLE loader
@@ -70,18 +70,27 @@ func main() {
 		<-done // blocks main goroutine until simulation stops
 	} else {
 		log.Println("Simulation loaded. Not autorunning as StepInterval < 0.")
-		simService.StepBySeconds(60) // Example: step by 60 seconds
-		var sats = simService.GetSatellites()
-		var sat1 = sats[0]
-		var sat2 = sats[1]
-		var route, err = sat1.BaseNode.Router.RouteAsyncToNode(sat2, nil)
-		if err != nil {
-			log.Println("Routing error:", err)
-		} else {
-			log.Println("Route from", sat1.GetName(), "to", sat2.GetName(), "in", route.Latency(), "ms")
-			log.Println(route)
+		for range 10 {
+			simService.StepBySeconds(60) // Example: step by 60 seconds
+			var sats = simService.GetGroundStations()
+			var sat1 = sats[0]
+			var sat2 = sats[80]
+			var l1 = sat1.GetLinkNodeProtocol().Established()[0]
+			var l2 = sat2.GetLinkNodeProtocol().Established()[0]
+			var x, _ = l1.GetOther(sat1).GetRouter().RouteAsyncToNode(l2.GetOther(sat2), nil)
+			var route, err = sat1.BaseNode.Router.RouteAsyncToNode(sat2, nil)
+			if err != nil {
+				log.Println("Routing error:", err)
+			} else {
+				log.Println("Route from", sat1.GetName(), "to", sat2.GetName(), "in", route.Latency(), "ms")
+				log.Println(route, x, l1.Latency(), l2.Latency())
+				log.Println(l1.GetOther(sat1).GetName(), "->", l2.GetOther(sat2).GetName())
+				log.Println(sat1.DistanceTo(sat2)/1000, "km apart")
+				log.Println(l1.Distance(), "km apart", sat2.DistanceTo(l1.GetOther(sat1)))
+				log.Println(l2.Distance(), "km apart", sat1.DistanceTo(l2.GetOther(sat2)))
+			}
+			log.Println(len(sats), "satellites in simulation.")
+			log.Println("Simulation stepped by 60 seconds.")
 		}
-		log.Println(len(sats), "satellites in simulation.")
-		log.Println("Simulation stepped by 60 seconds.")
 	}
 }

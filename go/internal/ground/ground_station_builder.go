@@ -17,16 +17,17 @@ type GroundStationBuilder struct {
 	altitude  float64
 
 	simStartTime     time.Time
-	protocol         links.GroundProtocolBuilder
+	protocolBuilder  *links.GroundProtocolBuilder
 	routerBuilder    *routing.RouterBuilder
 	computingBuilder *computing.DefaultComputingBuilder
 }
 
-func NewGroundStationBuilder(simStartTime time.Time, router *routing.RouterBuilder, computing *computing.DefaultComputingBuilder) *GroundStationBuilder {
+func NewGroundStationBuilder(simStartTime time.Time, router *routing.RouterBuilder, computing *computing.DefaultComputingBuilder, config configs.GroundLinkConfig) *GroundStationBuilder {
 	return &GroundStationBuilder{
 		simStartTime:     simStartTime,
 		routerBuilder:    router,
 		computingBuilder: computing,
+		protocolBuilder:  links.NewGroundProtocolBuilder(config),
 	}
 }
 
@@ -56,8 +57,8 @@ func (b *GroundStationBuilder) SetComputingType(value string) *GroundStationBuil
 	return b
 }
 
-func (b *GroundStationBuilder) ConfigureGroundLinkProtocol(fn func(links.GroundProtocolBuilder) links.GroundProtocolBuilder) *GroundStationBuilder {
-	b.protocol = fn(b.protocol)
+func (b *GroundStationBuilder) ConfigureGroundLinkProtocol(fn func(*links.GroundProtocolBuilder) *links.GroundProtocolBuilder) *GroundStationBuilder {
+	b.protocolBuilder = fn(b.protocolBuilder)
 	return b
 }
 
@@ -71,7 +72,7 @@ func (b *GroundStationBuilder) Build() *node.GroundStation {
 		b.name,
 		b.latitude,
 		b.longitude,
-		b.protocol.Build(),
+		b.protocolBuilder.Build(),
 		b.simStartTime,
 		router,
 		b.computingBuilder.Build())

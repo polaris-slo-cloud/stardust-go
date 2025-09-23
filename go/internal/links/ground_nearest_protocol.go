@@ -2,10 +2,11 @@ package links
 
 import (
 	"errors"
-	"sort"
+	"slices"
 	"sync"
 
 	"github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/internal/node"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
@@ -15,13 +16,13 @@ var _ types.GroundSatelliteLinkProtocol = (*GroundSatelliteNearestProtocol)(nil)
 // to the nearest satellite at any given time.
 type GroundSatelliteNearestProtocol struct {
 	link          *linktypes.GroundLink // Current active ground link
-	satellites    []types.Node          // Available satellites
+	satellites    []*node.Satellite     // Available satellites
 	groundStation types.Node            // The ground station node
 	mu            sync.Mutex
 }
 
 // NewGroundSatelliteNearestProtocol creates a new protocol with an initial list of satellites.
-func NewGroundSatelliteNearestProtocol(satellites []types.Node) types.GroundSatelliteLinkProtocol {
+func NewGroundSatelliteNearestProtocol(satellites []*node.Satellite) types.GroundSatelliteLinkProtocol {
 	return &GroundSatelliteNearestProtocol{
 		satellites: satellites,
 	}
@@ -71,8 +72,10 @@ func (p *GroundSatelliteNearestProtocol) UpdateLinks() ([]types.Link, error) {
 		return nil, errors.New("no satellites available")
 	}
 
-	sort.Slice(p.satellites, func(i, j int) bool {
-		return p.groundStation.DistanceTo(p.satellites[i]) < p.groundStation.DistanceTo(p.satellites[j])
+	slices.SortFunc(p.satellites, func(a *node.Satellite, b *node.Satellite) int {
+		var nodea types.Node = a
+		var nodeb types.Node = b
+		return int(p.groundStation.DistanceTo(nodea) - p.groundStation.DistanceTo(nodeb))
 	})
 
 	var nearest = p.satellites[0]
@@ -84,15 +87,11 @@ func (p *GroundSatelliteNearestProtocol) UpdateLinks() ([]types.Link, error) {
 	p.link = linktypes.NewGroundLink(p.groundStation, nearest)
 
 	// Add new link to satellite if it supports ground links
-	if s, ok := nearest.(interface{ AddGroundLink(link types.Link) }); ok {
-		s.AddGroundLink(p.link)
-	}
+	nearest.GetLinkNodeProtocol().ConnectLink(p.link)
 
 	// Remove old link from previous satellite if supported
 	if old != nil {
-		if oldSat, ok := old.Satellite.(interface{ RemoveGroundLink(station types.Node) }); ok {
-			oldSat.RemoveGroundLink(p.groundStation)
-		}
+		old.Satellite.GetLinkNodeProtocol().DisconnectLink(old)
 	}
 
 	return []types.Link{p.link}, nil
@@ -122,28 +121,32 @@ func (p *GroundSatelliteNearestProtocol) Link() types.Link {
 func (p *GroundSatelliteNearestProtocol) AddSatellite(sat types.Node) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	p.satellites = append(p.satellites, sat)
+	if satellite, ok := sat.(*node.Satellite); ok {
+		p.satellites = append(p.satellites, satellite)
+	}
 }
 
 // RemoveSatellite removes a satellite from the list and resets the link if needed.
-func (p *GroundSatelliteNearestProtocol) RemoveSatellite(sat types.Node) {
+func (p *GroundSatelliteNearestProtocol) RemoveSatellite(toRemove types.Node) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	// Filter out the satellite
-	filtered := make([]types.Node, 0, len(p.satellites))
-	for _, s := range p.satellites {
-		if s.GetName() != sat.GetName() {
-			filtered = append(filtered, s)
-		}
-	}
-	p.satellites = filtered
+	if satellite, ok := toRemove.(*node.Satellite); ok {
 
-	// Remove the link if it's pointing to the removed satellite
-	if p.link != nil && p.link.Satellite.GetName() == sat.GetName() {
-		if removable, ok := sat.(interface{ RemoveGroundLink(types.Node) }); ok {
-			removable.RemoveGroundLink(p.groundStation)
+		// Filter out the satellite
+		filtered := make([]*node.Satellite, 0, len(p.satellites))
+		for _, s := range p.satellites {
+			var sat = *s
+			if sat.GetName() != satellite.GetName() {
+				filtered = append(filtered, s)
+			}
 		}
-		p.link = nil
+		p.satellites = filtered
+
+		// Remove the link if it's pointing to the removed satellite
+		if p.link != nil && p.link.Satellite.GetName() == satellite.GetName() {
+			satellite.GetLinkNodeProtocol().DisconnectLink(p.link)
+			p.link = nil
+		}
 	}
 }

@@ -19,4 +19,7 @@ type Link interface {
 
 	// IsReachable returns true if the link is physically/line-of-sight reachable.
 	IsReachable() bool
+
+	// Nodes returns the two nodes connected by this link.
+	Nodes() (Node, Node)
 }

@@ -53,7 +53,7 @@ func (gs *GroundStation) PositionVector() types.Vector {
 }
 
 func (gs *GroundStation) DistanceTo(other types.Node) float64 {
-	return gs.Position.Sub(other.PositionVector()).Magnitude()
+	return gs.Position.Subtract(other.PositionVector()).Magnitude()
 }
 
 // UpdatePosition sets the current position of the ground station based on simulation time
@@ -63,7 +63,6 @@ func (gs *GroundStation) UpdatePosition(simTime time.Time) {
 
 	timeElapsed := simTime.Sub(gs.SimulationStartTime).Seconds()
 	gs.UpdatePositionFromElapsed(timeElapsed)
-	gs.GroundSatelliteLinkProtocol.UpdateLinks()
 }
 
 // UpdatePositionFromElapsed calculates Earth-centered coordinates using geodetic formula
