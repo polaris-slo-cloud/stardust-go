@@ -1,12 +1,13 @@
 package satellite
 
 import (
+	"time"
+
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/computing"
 	"github.com/keniack/stardustGo/internal/links"
 	"github.com/keniack/stardustGo/internal/node"
 	"github.com/keniack/stardustGo/internal/routing"
-	"time"
 )
 
 // SatelliteBuilder helps construct Satellite instances with ISL, routing, and computing configuration.
@@ -21,17 +22,18 @@ type SatelliteBuilder struct {
 	epoch             time.Time
 
 	routerBuilder    *routing.RouterBuilder
-	computingBuilder *computing.ComputingBuilder
+	computingBuilder *computing.DefaultComputingBuilder
 	islBuilder       *links.IslProtocolBuilder
 	islConfig        configs.InterSatelliteLinkConfig // Store the ISL config
 }
 
 // NewSatelliteBuilder creates a new SatelliteBuilder with required dependencies.
-func NewSatelliteBuilder(router *routing.RouterBuilder, computing *computing.ComputingBuilder, islConfig configs.InterSatelliteLinkConfig) *SatelliteBuilder {
+func NewSatelliteBuilder(router *routing.RouterBuilder, computing *computing.DefaultComputingBuilder, islConfig configs.InterSatelliteLinkConfig) *SatelliteBuilder {
 	return &SatelliteBuilder{
 		routerBuilder:    router,
 		computingBuilder: computing,
-		islConfig:        islConfig, // Initialize the ISL config
+		islConfig:        islConfig,                              // Initialize the ISL config
+		islBuilder:       links.NewIslProtocolBuilder(islConfig), // Pass the ISL config to the builder
 	}
 }
 
@@ -78,7 +80,7 @@ func (b *SatelliteBuilder) SetEpoch(epoch time.Time) *SatelliteBuilder {
 // ConfigureISL now uses the ISL config passed to the builder
 func (b *SatelliteBuilder) ConfigureISL(fn func(builder *links.IslProtocolBuilder) *links.IslProtocolBuilder) *SatelliteBuilder {
 	// Pass the ISL config to the builder
-	b.islBuilder = fn(links.NewIslProtocolBuilder(b.islConfig))
+	b.islBuilder = fn(b.islBuilder)
 	return b
 }
 

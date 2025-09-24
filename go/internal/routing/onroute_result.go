@@ -1,9 +1,10 @@
 package routing
 
 import (
-	"github.com/keniack/stardustGo/pkg/types"
 	"sync"
 	"time"
+
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 type OnRouteResult struct {
@@ -44,7 +45,7 @@ func (r *OnRouteResult) WaitLatencyAsync() error {
 	return nil
 }
 
-func (r *OnRouteResult) AddCalculationDuration(calculationDuration int) types.IRouteResult {
+func (r *OnRouteResult) AddCalculationDuration(calculationDuration int) types.RouteResult {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	if r.firstRequest {

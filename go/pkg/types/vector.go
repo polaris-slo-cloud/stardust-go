@@ -69,15 +69,6 @@ func DegreesToRadians(deg float64) float64 {
 	return deg * math.Pi / 180.0
 }
 
-// Sub subtracts two vectors and returns the resulting vector.
-func (v Vector) Sub(other Vector) Vector {
-	return Vector{
-		X: v.X - other.X,
-		Y: v.Y - other.Y,
-		Z: v.Z - other.Z,
-	}
-}
-
 // Magnitude returns the Euclidean norm (length) of the vector.
 func (v Vector) Magnitude() float64 {
 	return math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)

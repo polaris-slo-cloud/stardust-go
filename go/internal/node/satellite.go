@@ -1,16 +1,18 @@
 package node
 
 import (
+	"math"
+	"time"
+
 	"github.com/keniack/stardustGo/internal/links/linktypes"
 	"github.com/keniack/stardustGo/pkg/types"
-	"math"
-	"sync"
-	"time"
 )
+
+var _ types.Node = (*Satellite)(nil) // Ensure Satellite implements Node
 
 // Satellite represents a single satellite node in the simulation.
 type Satellite struct {
-	Node // Embedding Node struct to satisfy the Node interface
+	BaseNode // Embedding Node struct to satisfy the Node interface
 
 	Inclination          float64
 	InclinationRad       float64
@@ -23,19 +25,19 @@ type Satellite struct {
 	MeanMotion           float64
 	SemiMajorAxis        float64
 	Epoch                time.Time
-	ISLProtocol          types.IInterSatelliteLinkProtocol
-	GroundLinks          []types.ILink
+	ISLProtocol          types.InterSatelliteLinkProtocol
+	GroundLinks          []types.Link
 	Position             types.Vector
 }
 
 // NewSatellite initializes a new Satellite object with orbital configuration and ISL protocol.
-func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, meanMotion float64, epoch time.Time, simTime time.Time, isl types.IInterSatelliteLinkProtocol, router types.IRouter, computing types.IComputing) *Satellite {
+func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, meanMotion float64, epoch time.Time, simTime time.Time, isl types.InterSatelliteLinkProtocol, router types.Router, computing types.Computing) *Satellite {
 	inclRad := types.DegreesToRadians(inclination)
 	raanRad := types.DegreesToRadians(raan)
 	argPerigeeRad := types.DegreesToRadians(argPerigee)
 
 	s := &Satellite{
-		Node:                 Node{Name: name, Router: router, Computing: computing}, // Embedding Node struct
+		BaseNode:             BaseNode{Name: name, Router: router, Computing: computing}, // Embedding Node struct
 		Inclination:          inclination,
 		InclinationRad:       inclRad,
 		RightAscension:       raan,
@@ -47,15 +49,16 @@ func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, 
 		MeanMotion:           meanMotion,
 		Epoch:                epoch,
 		ISLProtocol:          isl,
-		GroundLinks:          []types.ILink{},
+		GroundLinks:          []types.Link{},
 	}
 
 	isl.Mount(s)
+	router.Mount(s)
 	s.UpdatePosition(simTime)
 	return s
 }
 
-// Implementing INode methods via the embedded Node struct
+// Implementing Node methods via the embedded Node struct
 
 // GetName returns the name of the satellite (from Node)
 func (s *Satellite) GetName() string {
@@ -68,18 +71,18 @@ func (s *Satellite) PositionVector() types.Vector {
 }
 
 // DistanceTo calculates the distance between this satellite and another node (satellite or ground station)
-func (s *Satellite) DistanceTo(other types.INode) float64 {
-	return s.Position.Sub(other.PositionVector()).Magnitude()
+func (s *Satellite) DistanceTo(other types.Node) float64 {
+	return s.Position.Subtract(other.PositionVector()).Magnitude()
 }
 
-func (s *Satellite) GetComputing() types.IComputing {
+func (s *Satellite) GetComputing() types.Computing {
 	return s.Computing
 }
 
 // GetLinks returns all links connected to the satellite (both ISL and ground links)
-func (s *Satellite) GetLinks() []types.ILink {
+func (s *Satellite) GetLinks() []types.Link {
 	// Combine inter-satellite links and ground links
-	var allLinks []types.ILink
+	var allLinks []types.Link
 
 	// Add inter-satellite links (ISL links)
 	for _, link := range s.ISLProtocol.Links() {
@@ -92,6 +95,18 @@ func (s *Satellite) GetLinks() []types.ILink {
 	}
 
 	return allLinks
+}
+
+func (s *Satellite) GetEstablishedLinks() []types.Link {
+	var establishedLinks []types.Link
+	s.ISLProtocol.Established()
+	for _, link := range s.ISLProtocol.Established() {
+		establishedLinks = append(establishedLinks, link)
+	}
+	for _, groundLink := range s.GroundLinks {
+		establishedLinks = append(establishedLinks, groundLink)
+	}
+	return establishedLinks
 }
 
 // UpdatePosition calculates the satellite's position in the ECI frame based on orbital elements and simulation time
@@ -110,6 +125,10 @@ func (s *Satellite) UpdatePosition(simTime time.Time) {
 	zp := 0.0
 
 	s.Position = applyOrbitalTransformations(xp, yp, zp, s.InclinationRad, s.ArgumentOfPerigeeRad, s.RightAscensionRad)
+}
+
+func (s *Satellite) GetLinkNodeProtocol() types.LinkNodeProtocol {
+	return s.ISLProtocol
 }
 
 // ApplyOrbitalTransformations converts orbital plane coordinates into the Earth-Centered Inertial (ECI) frame
@@ -159,29 +178,21 @@ func computeTrueAnomaly(E, ecc float64) float64 {
 
 // ConfigureConstellation configures a constellation of satellites by linking them.
 func (s *Satellite) ConfigureConstellation(satellites []*Satellite) {
-	var wg sync.WaitGroup
-
-	// Launch a goroutine to handle the configuration asynchronously
-	go func() {
-		for _, satellite := range satellites {
-			// Skip if it's the same satellite (this) or if there's already a link
-			if satellite == s { // Or add more conditions here if needed (e.g., checking existing links)
-				continue
-			}
-
-			// Create a new ISL link between the current satellite and the other one
-			link := linktypes.NewIslLink(s, satellite)
-
-			// Locking to ensure thread safety while modifying ISLProtocol
-			s.ISLProtocol.AddLink(link)         // Add link to this satellite's ISL protocol
-			satellite.ISLProtocol.AddLink(link) // Add link to the other satellite's ISL protocol
-
-			// WaitGroup to ensure completion of all link additions
-			wg.Add(1)
-			wg.Done()
+	for _, satellite := range satellites {
+		// Skip if it's the same satellite (this) or if there's already a link
+		if satellite == s { // Or add more conditions here if needed (e.g., checking existing links)
+			continue
 		}
-	}()
 
-	// Wait for all the links to be added before returning
-	wg.Wait()
+		// Create a new ISL link between the current satellite and the other one
+		link := linktypes.NewIslLink(s, satellite)
+
+		// Locking to ensure thread safety while modifying ISLProtocol
+		s.ISLProtocol.AddLink(link)         // Add link to this satellite's ISL protocol
+		satellite.ISLProtocol.AddLink(link) // Add link to the other satellite's ISL protocol
+	}
+}
+
+func (s *Satellite) GetRouter() types.Router {
+	return s.Router
 }

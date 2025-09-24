@@ -15,23 +15,30 @@ import (
 type Config struct {
 	Simulation SimulationConfig         `json:"SimulationConfiguration" yaml:"SimulationConfiguration"`
 	ISL        InterSatelliteLinkConfig `json:"InterSatelliteLinkConfig" yaml:"InterSatelliteLinkConfig"`
+	Ground     GroundLinkConfig         `json:"GroundLinkConfig" yaml:"GroundLinkConfig"`
 	Router     RouterConfig             `json:"RouterConfig" yaml:"RouterConfig"`
 	Computing  []ComputingConfig        `json:"ComputingConfiguration" yaml:"ComputingConfiguration"`
 }
 
 type SimulationConfig struct {
-	StepInterval            int       `json:"StepInterval" yaml:"StepInterval"`
-	StepMultiplier          int       `json:"StepMultiplier" yaml:"StepMultiplier"`
-	SatelliteDataSource     string    `json:"SatelliteDataSource" yaml:"SatelliteDataSource"`
-	SatelliteDataSourceType string    `json:"SatelliteDataSourceType" yaml:"SatelliteDataSourceType"`
-	UsePreRouteCalc         bool      `json:"UsePreRouteCalc" yaml:"UsePreRouteCalc"`
-	MaxCpuCores             int       `json:"MaxCpuCores" yaml:"MaxCpuCores"`
-	SimulationStartTime     time.Time `json:"SimulationStartTime" yaml:"SimulationStartTime"`
+	StepInterval                int       `json:"StepInterval" yaml:"StepInterval"`
+	StepMultiplier              int       `json:"StepMultiplier" yaml:"StepMultiplier"`
+	SatelliteDataSource         string    `json:"SatelliteDataSource" yaml:"SatelliteDataSource"`
+	SatelliteDataSourceType     string    `json:"SatelliteDataSourceType" yaml:"SatelliteDataSourceType"`
+	GroundStationDataSource     string    `json:"GroundStationDataSource" yaml:"GroundStationDataSource"`
+	GroundStationDataSourceType string    `json:"GroundStationDataSourceType" yaml:"GroundStationDataSourceType"`
+	UsePreRouteCalc             bool      `json:"UsePreRouteCalc" yaml:"UsePreRouteCalc"`
+	MaxCpuCores                 int       `json:"MaxCpuCores" yaml:"MaxCpuCores"`
+	SimulationStartTime         time.Time `json:"SimulationStartTime" yaml:"SimulationStartTime"`
 }
 
 type InterSatelliteLinkConfig struct {
 	Neighbours int    `json:"Neighbours" yaml:"Neighbours"` // Number of neighbors per satellite
 	Protocol   string `json:"Protocol" yaml:"Protocol"`     // Strategy name: "mst", "nearest", etc.
+}
+
+type GroundLinkConfig struct {
+	Protocol string `json:"Protocol" yaml:"Protocol"`
 }
 
 type RouterConfig struct {

@@ -3,16 +3,17 @@ package routing
 
 import (
 	"errors"
-	"github.com/keniack/stardustGo/configs"
-	"github.com/keniack/stardustGo/pkg/types"
 	"math"
 	"sort"
+
+	"github.com/keniack/stardustGo/configs"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // AStarRouter implements the A* pathfinding algorithm between nodes.
 type AStarRouter struct {
-	self  types.INode   // the node this router is mounted to
-	nodes []types.INode // cached list of all reachable nodes
+	self  types.Node   // the node this router is mounted to
+	nodes []types.Node // cached list of all reachable nodes
 }
 
 // NewAStarRouter creates a new AStarRouter instance.
@@ -21,7 +22,7 @@ func NewAStarRouter() *AStarRouter {
 }
 
 // Mount binds the router to a node. This method satisfies the IRouter interface.
-func (r *AStarRouter) Mount(n types.INode) error {
+func (r *AStarRouter) Mount(n types.Node) error {
 	if r.self != nil {
 		return errors.New("router already mounted")
 	}
@@ -48,18 +49,18 @@ func (r *AStarRouter) AdvertiseNewServiceAsync(serviceName string) error {
 }
 
 // ReceiveServiceAdvertismentsAsync updates the service routes. A* doesn't use this, but it's implemented to satisfy the IRouter interface.
-func (r *AStarRouter) ReceiveServiceAdvertismentsAsync(serviceName string, outlink types.ILink, route types.IRouteResult) error {
+func (r *AStarRouter) ReceiveServiceAdvertismentsAsync(serviceName string, outlink types.Link, route types.RouteResult) error {
 	// Placeholder for receiving service advertisement (future use)
 	return nil
 }
 
 // RouteAsync finds the nearest node that hosts the service and routes to it.
-func (r *AStarRouter) RouteAsync(serviceName string, payload types.IPayload) (types.IRouteResult, error) {
+func (r *AStarRouter) RouteAsync(serviceName string, payload types.Payload) (types.RouteResult, error) {
 	if r.self == nil {
 		return nil, errors.New("router not mounted")
 	}
 
-	var candidates []types.INode
+	var candidates []types.Node
 	for _, n := range r.getNeighbourhood() {
 		if n.GetComputing().HostsService(serviceName) {
 			candidates = append(candidates, n)
@@ -77,7 +78,7 @@ func (r *AStarRouter) RouteAsync(serviceName string, payload types.IPayload) (ty
 }
 
 // RouteAsyncToNode is used to route to a specific node. This method satisfies the IRouter interface.
-func (r *AStarRouter) RouteAsyncToNode(target types.INode, payload types.IPayload) (types.IRouteResult, error) {
+func (r *AStarRouter) RouteAsyncToNode(target types.Node, payload types.Payload) (types.RouteResult, error) {
 	if r.self == nil {
 		return nil, errors.New("router not mounted")
 	}
@@ -85,19 +86,19 @@ func (r *AStarRouter) RouteAsyncToNode(target types.INode, payload types.IPayloa
 }
 
 // RouteTo executes A* from the mounted node to the given target.
-func (r *AStarRouter) RouteTo(target types.INode, payload types.IPayload) (types.IRouteResult, error) {
+func (r *AStarRouter) RouteTo(target types.Node, payload types.Payload) (types.RouteResult, error) {
 	if r.self == nil {
 		return nil, errors.New("router not mounted")
 	}
 
-	openset := make(map[types.INode]float64)
-	gScore := map[types.INode]float64{r.self: 0}
-	fScore := map[types.INode]float64{r.self: heuristic(r.self, target)}
+	openset := make(map[types.Node]float64)
+	gScore := map[types.Node]float64{r.self: 0}
+	fScore := map[types.Node]float64{r.self: heuristic(r.self, target)}
 	openset[r.self] = fScore[r.self]
 
 	for len(openset) > 0 {
 		// Find node in openset with lowest fScore
-		var current types.INode
+		var current types.Node
 		minScore := math.MaxFloat64
 		for n, score := range openset {
 			if score < minScore {
@@ -111,10 +112,7 @@ func (r *AStarRouter) RouteTo(target types.INode, payload types.IPayload) (types
 			return NewOnRouteResult(int(gScore[current]), 0), nil
 		}
 
-		for _, l := range current.GetLinks() {
-			if !l.Established() {
-				continue
-			}
+		for _, l := range current.GetEstablishedLinks() {
 			neighbor := l.GetOther(current)
 			alt := gScore[current] + l.Latency()
 			if prev, ok := gScore[neighbor]; !ok || alt < prev {
@@ -128,10 +126,10 @@ func (r *AStarRouter) RouteTo(target types.INode, payload types.IPayload) (types
 }
 
 // getNeighbourhood returns all nodes connected to the current node (BFS).
-func (r *AStarRouter) getNeighbourhood() []types.INode {
-	visited := map[types.INode]bool{}
-	queue := []types.INode{r.self}
-	var result []types.INode
+func (r *AStarRouter) getNeighbourhood() []types.Node {
+	visited := map[types.Node]bool{}
+	queue := []types.Node{r.self}
+	var result []types.Node
 
 	for len(queue) > 0 {
 		n := queue[0]
@@ -155,7 +153,7 @@ func (r *AStarRouter) getNeighbourhood() []types.INode {
 }
 
 // heuristic estimates the distance from node a to node b (in ms).
-func heuristic(a, b types.INode) float64 {
+func heuristic(a, b types.Node) float64 {
 	d := a.DistanceTo(b)
 	return d / configs.SpeedOfLight * 1000
 }

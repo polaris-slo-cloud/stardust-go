@@ -1,14 +1,16 @@
 package satellite
 
 import (
-	"github.com/keniack/stardustGo/configs"
-	"github.com/keniack/stardustGo/pkg/types"
 	"log"
+
+	"github.com/keniack/stardustGo/configs"
+	"github.com/keniack/stardustGo/internal/simulation"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
-// LoaderService wires the constellation loader and triggers simulation startup.
-type LoaderService struct {
-	controller            types.ISimulationController
+// SatelliteLoaderService wires the constellation loader and triggers simulation startup.
+type SatelliteLoaderService struct {
+	controller            simulation.SimulationController
 	constellationLoader   *SatelliteConstellationLoader
 	tleLoader             *TleLoader
 	satelliteBuilder      *SatelliteBuilder
@@ -17,19 +19,19 @@ type LoaderService struct {
 	satelliteSourceFormat string
 }
 
-// NewLoaderService initializes all required loaders and binds them.
-func NewLoaderService(
+// NewSatelliteLoaderService initializes all required loaders and binds them.
+func NewSatelliteLoaderService(
 	config configs.InterSatelliteLinkConfig,
 	builder *SatelliteBuilder,
 	loader *SatelliteConstellationLoader,
-	controller types.ISimulationController,
+	controller simulation.SimulationController,
 	dataSourcePath string,
 	sourceFormat string,
-) *LoaderService {
+) *SatelliteLoaderService {
 	tleLoader := NewTleLoader(config, builder)
 	loader.RegisterDataSourceLoader("tle", tleLoader)
 
-	return &LoaderService{
+	return &SatelliteLoaderService{
 		controller:            controller,
 		constellationLoader:   loader,
 		tleLoader:             tleLoader,
@@ -41,19 +43,19 @@ func NewLoaderService(
 }
 
 // Start loads satellites and injects them into the simulation
-func (s *LoaderService) Start() error {
+func (s *SatelliteLoaderService) Start() error {
 	log.Println("Starting LoaderService...")
 	satellites, err := s.constellationLoader.LoadSatelliteConstellation(s.satelliteDataSource, s.satelliteSourceFormat)
 	if err != nil {
 		return err
 	}
 
-	// Convert []*node.Satellite to []*types.INode
-	var nodes []types.INode
+	// Convert []*node.Satellite to []*types.Node
+	var nodes []types.Node
 	for _, satellite := range satellites {
 		// Append the pointer to the slice
-		node := types.INode(satellite) // Convert *node.Satellite to *types.INode
-		nodes = append(nodes, node)    // Append pointer to slice
+		node := types.Node(satellite) // Convert *node.Satellite to *types.Node
+		nodes = append(nodes, node)   // Append pointer to slice
 	}
 
 	log.Printf("Injecting %d satellites into simulation", len(satellites))

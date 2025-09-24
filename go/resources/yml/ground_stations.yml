@@ -1,0 +1,594 @@
+- Name: Graz
+  Lat: 47.0707
+  Lon: 15.4409
+  Protocol: nearest
+  Router: default
+  ComputingType: None
+
+- Name: Vienna
+  Lat: 48.2082
+  Lon: 16.3738
+  Protocol: nearest
+  Router: default
+  ComputingType: Edge
+
+- Name: Ljubljana
+  Lat: 46.0569
+  Lon: 14.5058
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Zagreb
+  Lat: 45.8150
+  Lon: 15.9819
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Bratislava
+  Lat: 48.1486
+  Lon: 17.1077
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Havlickuv Brod
+  Lat: 49.6065
+  Lon: 15.5808
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Prague
+  Lat: 50.0755
+  Lon: 14.4378
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Brno
+  Lat: 49.1951
+  Lon: 16.6068
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Praha
+  Lat: 50.0755
+  Lon: 14.4378
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Zurich
+  Lat: 47.3769
+  Lon: 8.5417
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Zlin
+  Lat: 49.2245
+  Lon: 17.6668
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Rtyne v Podkrkonosi
+  Lat: 50.5165
+  Lon: 16.0586
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Budapest
+  Lat: 47.4979
+  Lon: 19.0402
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Ostrava
+  Lat: 49.8347
+  Lon: 18.2926
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Frankfurt
+  Lat: 50.1109
+  Lon: 8.6821
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Katowice
+  Lat: 50.2649
+  Lon: 19.0238
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Milan
+  Lat: 45.4642
+  Lon: 9.1900
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Belgrade
+  Lat: 44.8176
+  Lon: 20.4573
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Stargard
+  Lat: 53.3366
+  Lon: 15.0476
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Brussels
+  Lat: 50.8503
+  Lon: 4.3517
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Warsaw
+  Lat: 52.2297
+  Lon: 21.0122
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Amsterdam
+  Lat: 52.3676
+  Lon: 4.9041
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Paris
+  Lat: 48.8566
+  Lon: 2.3522
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Skopje
+  Lat: 41.9981
+  Lon: 21.4275
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Lomza
+  Lat: 53.1781
+  Lon: 22.0898
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Gravelines
+  Lat: 50.9869
+  Lon: 2.1206
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Copenhagen
+  Lat: 55.6761
+  Lon: 12.5683
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Palermo
+  Lat: 38.1157
+  Lon: 13.3613
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Bucharest
+  Lat: 44.4268
+  Lon: 26.1025
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: London Docklands
+  Lat: 51.5064
+  Lon: -0.0178
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Thessaloniki
+  Lat: 40.6401
+  Lon: 22.9375
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: London
+  Lat: 51.5074
+  Lon: -0.1276
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Vilnius
+  Lat: 54.6872
+  Lon: 25.2797
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Chisinau
+  Lat: 47.0105
+  Lon: 28.8254
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Manchester
+  Lat: 53.4808
+  Lon: -2.2426
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Riga
+  Lat: 56.9496
+  Lon: 24.1052
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Stockholm
+  Lat: 59.3293
+  Lon: 18.0686
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Oslo
+  Lat: 59.9139
+  Lon: 10.7522
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Tallinn
+  Lat: 59.4370
+  Lon: 24.7536
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Madrid
+  Lat: 40.4168
+  Lon: -3.7038
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Ireland
+  Lat: 53.4129
+  Lon: -7.6921
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Merefa
+  Lat: 49.8216
+  Lon: 36.0448
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: St. Petersburg
+  Lat: 59.9343
+  Lon: 30.3158
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Seville
+  Lat: 37.3891
+  Lon: -5.9845
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Limassol
+  Lat: 34.6751
+  Lon: 33.0456
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Tel Aviv
+  Lat: 32.0853
+  Lon: 34.7818
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Hafnarfjordur
+  Lat: 64.0676
+  Lon: -21.9531
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Riyadh
+  Lat: 24.7136
+  Lon: 46.7219
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Dubai
+  Lat: 25.2048
+  Lon: 55.2708
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Delhi
+  Lat: 28.7041
+  Lon: 77.1025
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Nashik
+  Lat: 19.9975
+  Lon: 73.7898
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Mumbai
+  Lat: 19.0760
+  Lon: 72.8777
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Montreal
+  Lat: 45.5017
+  Lon: -73.5673
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: New York
+  Lat: 40.7128
+  Lon: -74.0060
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Hyderabad
+  Lat: 17.3850
+  Lon: 78.4867
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Toronto
+  Lat: 43.6532
+  Lon: -79.3832
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Ashburn
+  Lat: 39.0438
+  Lon: -77.4874
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Washington
+  Lat: 38.9072
+  Lon: -77.0369
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Los Angeles
+  Lat: 34.0522
+  Lon: -118.2437
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Bangalore
+  Lat: 12.9716
+  Lon: 77.5946
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Dhaka
+  Lat: 23.8103
+  Lon: 90.4125
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: CUMILLA
+  Lat: 23.4571
+  Lon: 91.1916
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Chicago
+  Lat: 41.8781
+  Lon: -87.6298
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Bogota
+  Lat: 4.7110
+  Lon: -74.0721
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Miami
+  Lat: 25.7617
+  Lon: -80.1918
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Johannesburg
+  Lat: -26.2041
+  Lon: 28.0473
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Vancouver
+  Lat: 49.2827
+  Lon: -123.1216
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Seoul
+  Lat: 37.5665
+  Lon: 126.9780
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Seattle
+  Lat: 47.6062
+  Lon: -122.3321
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Dallas
+  Lat: 32.7767
+  Lon: -96.7970
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Salt Lake City
+  Lat: 40.7608
+  Lon: -111.8910
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Hong Kong
+  Lat: 22.3193
+  Lon: 114.1694
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Kwai Chung
+  Lat: 22.3626
+  Lon: 114.1328
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Osaka
+  Lat: 34.6937
+  Lon: 135.5022
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Tokyo
+  Lat: 35.6895
+  Lon: 139.6917
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Sao Paulo
+  Lat: -23.5505
+  Lon: -46.6333
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Singapore
+  Lat: 1.3521
+  Lon: 103.8198
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Jakarta
+  Lat: -6.2088
+  Lon: 106.8456
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Santiago
+  Lat: -33.4489
+  Lon: -70.6483
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Vina del Mar
+  Lat: -33.0245
+  Lon: -71.5500
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Honolulu
+  Lat: 21.3069
+  Lon: -157.8583
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Dili
+  Lat: -8.5569
+  Lon: 125.5795
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Melbourne
+  Lat: -37.8136
+  Lon: 144.9631
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Sydney
+  Lat: -33.8688
+  Lon: 151.2093
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud
+
+- Name: Mexico City
+  Lat: 19.4326
+  Lon: -99.1332
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud

@@ -1,68 +1,70 @@
 package links
 
 import (
+	"slices"
 	"sync"
 
 	"github.com/keniack/stardustGo/configs"
-	"github.com/keniack/stardustGo/internal/links/linktypes"
 	"github.com/keniack/stardustGo/pkg/types"
 )
+
+var _ types.InterSatelliteLinkProtocol = (*IslAddLoopProtocol)(nil)
 
 // IslAddLoopProtocol wraps another IInterSatelliteLinkProtocol
 // and adds a single additional loop link if too few are established.
 type IslAddLoopProtocol struct {
-	inner  types.IInterSatelliteLinkProtocol
+	inner  types.InterSatelliteLinkProtocol
 	config configs.InterSatelliteLinkConfig
 	mu     sync.Mutex
 }
 
 // NewIslAddLoopProtocol creates a loop-adding decorator.
-func NewIslAddLoopProtocol(inner types.IInterSatelliteLinkProtocol, cfg configs.InterSatelliteLinkConfig) *IslAddLoopProtocol {
+func NewIslAddLoopProtocol(inner types.InterSatelliteLinkProtocol, cfg configs.InterSatelliteLinkConfig) *IslAddLoopProtocol {
 	return &IslAddLoopProtocol{inner: inner, config: cfg}
 }
 
 // Mount delegates mounting to the wrapped protocol.
-func (p *IslAddLoopProtocol) Mount(s types.INode) {
+func (p *IslAddLoopProtocol) Mount(s types.Node) {
 	p.inner.Mount(s)
 }
 
 // AddLink delegates link registration to the wrapped protocol.
-func (p *IslAddLoopProtocol) AddLink(link types.ILink) {
+func (p *IslAddLoopProtocol) AddLink(link types.Link) {
 	p.inner.AddLink(link)
 }
 
 // ConnectLink delegates connection to the wrapped protocol.
-func (p *IslAddLoopProtocol) ConnectLink(link types.ILink) error {
+func (p *IslAddLoopProtocol) ConnectLink(link types.Link) error {
 	return p.inner.ConnectLink(link)
 }
 
 // DisconnectLink delegates disconnection to the wrapped protocol.
-func (p *IslAddLoopProtocol) DisconnectLink(link types.ILink) error {
+func (p *IslAddLoopProtocol) DisconnectLink(link types.Link) error {
 	return p.inner.DisconnectLink(link)
 }
 
 // ConnectSatellite delegates to the wrapped protocol.
-func (p *IslAddLoopProtocol) ConnectSatellite(s types.INode) error {
+func (p *IslAddLoopProtocol) ConnectSatellite(s types.Node) error {
 	return p.inner.ConnectSatellite(s)
 }
 
 // DisconnectSatellite delegates to the wrapped protocol.
-func (p *IslAddLoopProtocol) DisconnectSatellite(s types.INode) error {
+func (p *IslAddLoopProtocol) DisconnectSatellite(s types.Node) error {
 	return p.inner.DisconnectSatellite(s)
 }
 
 // Links returns all *IslLink links from the wrapped protocol.
-func (p *IslAddLoopProtocol) Links() []types.ILink {
+func (p *IslAddLoopProtocol) Links() []types.Link {
 	return p.inner.Links()
 }
 
 // Established returns all active *IslLink connections.
-func (p *IslAddLoopProtocol) Established() []types.ILink {
+func (p *IslAddLoopProtocol) Established() []types.Link {
 	return p.inner.Established()
 }
 
 // UpdateLinks adds one additional loop link if there are too few established connections.
-func (p *IslAddLoopProtocol) UpdateLinks() ([]types.ILink, error) {
+func (p *IslAddLoopProtocol) UpdateLinks() ([]types.Link, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -71,72 +73,45 @@ func (p *IslAddLoopProtocol) UpdateLinks() ([]types.ILink, error) {
 		return nil, err
 	}
 
-	var established []*linktypes.IslLink
-	for _, l := range innerEstablished {
-		if isl, ok := l.(*linktypes.IslLink); ok {
-			established = append(established, isl)
-		}
-	}
+	established := make([]types.Link, len(innerEstablished))
+	copy(established, innerEstablished)
 
 	// Only add an extra link if we're under the target neighbor count
 	if len(established) > 0 && len(established) < p.config.Neighbours-1 {
 		type candidate struct {
 			dist float64
-			link *linktypes.IslLink
+			link types.Link
 		}
 		var best *candidate
 
 		for _, l := range p.inner.Links() {
-			isl, ok := l.(*linktypes.IslLink)
-			if !ok || contains(established, isl) || isl.Distance() > configs.MaxISLDistance {
+			if slices.Contains(established, l) || l.Distance() > configs.MaxISLDistance {
 				continue
 			}
 
-			n1, ok1 := isl.Node1.(types.NodeWithISL)
-			n2, ok2 := isl.Node2.(types.NodeWithISL)
-			if !ok1 || !ok2 {
+			n1, n2 := l.Nodes()
+			if !shouldLoop(n1.GetLinkNodeProtocol().Established(), p.config.Neighbours) ||
+				!shouldLoop(n2.GetLinkNodeProtocol().Established(), p.config.Neighbours) {
 				continue
 			}
 
-			if !shouldLoop(n1.InterSatelliteLinkProtocol().Established(), p.config.Neighbours) ||
-				!shouldLoop(n2.InterSatelliteLinkProtocol().Established(), p.config.Neighbours) {
-				continue
-			}
-
-			if best == nil || isl.Distance() < best.dist {
-				best = &candidate{dist: isl.Distance(), link: isl}
+			if best == nil || l.Distance() < best.dist {
+				best = &candidate{dist: l.Distance(), link: l}
 			}
 		}
 
 		if best != nil {
-			n1 := best.link.Node1.(types.NodeWithISL)
-			n2 := best.link.Node2.(types.NodeWithISL)
-			_ = n1.InterSatelliteLinkProtocol().ConnectLink(best.link)
-			_ = n2.InterSatelliteLinkProtocol().ConnectLink(best.link)
-			best.link.SetEstablished(true)
+			n1, n2 := best.link.Nodes()
+			_ = n1.GetLinkNodeProtocol().ConnectLink(best.link)
+			_ = n2.GetLinkNodeProtocol().ConnectLink(best.link)
 			established = append(established, best.link)
 		}
 	}
 
-	// Return as []types.ILink
-	out := make([]types.ILink, len(established))
-	for i, l := range established {
-		out[i] = l
-	}
-	return out, nil
-}
-
-// contains checks if a link is already in the list.
-func contains(list []*linktypes.IslLink, link *linktypes.IslLink) bool {
-	for _, l := range list {
-		if l == link {
-			return true
-		}
-	}
-	return false
+	return established, nil
 }
 
 // shouldLoop returns true if the node has fewer than the maximum allowed neighbors.
-func shouldLoop(established []types.ILink, max int) bool {
+func shouldLoop(established []types.Link, max int) bool {
 	return len(established) < max
 }

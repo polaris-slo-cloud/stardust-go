@@ -1,9 +1,10 @@
 package links
 
 import (
+	"log"
+
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/pkg/types"
-	"log"
 )
 
 // IslProtocolBuilder constructs inter-satellite link protocols based on config
@@ -11,10 +12,12 @@ import (
 // Available protocols: mst, pst, mst_loop, pst_loop, mst_smart_loop, pst_smart_loop, other_mst, other_mst_loop, other_mst_smart_loop, nearest
 
 type IslProtocolBuilder struct {
-	config   configs.InterSatelliteLinkConfig
-	mst      *IslMstProtocol
-	pst      *IslPstProtocol
-	otherMst *IslSatelliteCentricMstProtocol
+	config       configs.InterSatelliteLinkConfig
+	mst          *IslMstProtocol
+	pst          *IslPstProtocol
+	mstSmartLoop *IslAddSmartLoopProtocol
+	pstSmartLoop *IslAddSmartLoopProtocol
+	otherMst     *IslSatelliteCentricMstProtocol
 }
 
 // NewIslProtocolBuilder initializes a protocol builder instance
@@ -23,7 +26,7 @@ func NewIslProtocolBuilder(cfg configs.InterSatelliteLinkConfig) *IslProtocolBui
 }
 
 // Build selects and wraps the desired link protocol
-func (b *IslProtocolBuilder) Build() types.IInterSatelliteLinkProtocol {
+func (b *IslProtocolBuilder) Build() types.InterSatelliteLinkProtocol {
 	switch b.config.Protocol {
 	case "mst":
 		return NewIslFilterProtocol(b.getMst())
@@ -34,9 +37,9 @@ func (b *IslProtocolBuilder) Build() types.IInterSatelliteLinkProtocol {
 	case "pst_loop":
 		return NewIslAddLoopProtocol(NewIslFilterProtocol(b.getPst()), b.config)
 	case "mst_smart_loop":
-		return NewIslFilterProtocol(NewIslAddSmartLoopProtocol(b.getMst(), b.config))
+		return NewIslFilterProtocol(b.getMstAddSmartLoop())
 	case "pst_smart_loop":
-		return NewIslFilterProtocol(NewIslAddSmartLoopProtocol(b.getPst(), b.config))
+		return NewIslFilterProtocol(b.getPstAddSmartLoop())
 	case "other_mst":
 		return NewIslFilterProtocol(b.getOtherMst())
 	case "other_mst_loop":
@@ -63,6 +66,20 @@ func (b *IslProtocolBuilder) getPst() *IslPstProtocol {
 		b.pst = NewIslPstProtocol()
 	}
 	return b.pst
+}
+
+func (b *IslProtocolBuilder) getMstAddSmartLoop() *IslAddSmartLoopProtocol {
+	if b.mstSmartLoop == nil {
+		b.mstSmartLoop = NewIslAddSmartLoopProtocol(b.getMst(), b.config)
+	}
+	return b.mstSmartLoop
+}
+
+func (b *IslProtocolBuilder) getPstAddSmartLoop() *IslAddSmartLoopProtocol {
+	if b.pstSmartLoop == nil {
+		b.pstSmartLoop = NewIslAddSmartLoopProtocol(b.getPst(), b.config)
+	}
+	return b.pstSmartLoop
 }
 
 func (b *IslProtocolBuilder) getOtherMst() *IslSatelliteCentricMstProtocol {

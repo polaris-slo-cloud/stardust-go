@@ -9,7 +9,7 @@ type PreRouteResult struct {
 }
 
 // NewPreRouteResult creates a new PreRouteResult with the specified latency
-func NewPreRouteResult(latency int) types.IRouteResult {
+func NewPreRouteResult(latency int) types.RouteResult {
 	if latency < 0 {
 		return nil // Return nil if latency is negative
 	}
@@ -32,6 +32,6 @@ func (r *PreRouteResult) WaitLatencyAsync() error {
 }
 
 // AddCalculationDuration adds additional calculation duration to the route and returns the updated result
-func (r *PreRouteResult) AddCalculationDuration(calculationDuration int) types.IRouteResult {
+func (r *PreRouteResult) AddCalculationDuration(calculationDuration int) types.RouteResult {
 	return NewOnRouteResult(r.latency, calculationDuration)
 }

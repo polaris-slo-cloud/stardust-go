@@ -5,15 +5,17 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+var _ types.Link = (*GroundLink)(nil)
+
 const groundSpeedOfLight = configs.SpeedOfLight * 0.98 // 98% of light speed
 
 type GroundLink struct {
-	GroundStation types.INode
-	Satellite     types.INode
+	GroundStation types.Node
+	Satellite     types.Node
 }
 
 // NewGroundLink constructs a link between a ground station and a satellite.
-func NewGroundLink(gs types.INode, sat types.INode) *GroundLink {
+func NewGroundLink(gs types.Node, sat types.Node) *GroundLink {
 	return &GroundLink{
 		GroundStation: gs,
 		Satellite:     sat,
@@ -40,7 +42,7 @@ func (gl *GroundLink) Established() bool {
 	return true
 }
 
-func (gl *GroundLink) GetOther(self types.INode) types.INode {
+func (gl *GroundLink) GetOther(self types.Node) types.Node {
 	if self.GetName() == gl.Satellite.GetName() {
 		return gl.GroundStation
 	}
@@ -54,4 +56,8 @@ func (gl *GroundLink) GetOther(self types.INode) types.INode {
 // IsReachable returns true – placeholder for future visibility checks.
 func (gl *GroundLink) IsReachable() bool {
 	return true
+}
+
+func (gl *GroundLink) Nodes() (types.Node, types.Node) {
+	return gl.GroundStation, gl.Satellite
 }

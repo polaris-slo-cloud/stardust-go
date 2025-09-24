@@ -10,6 +10,8 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+var _ types.InterSatelliteLinkProtocol = (*IslSatelliteCentricMstProtocol)(nil)
+
 // IslSatelliteCentricMstProtocol implements a satellite-centric MST algorithm
 // for managing inter-satellite links. It ensures links are established optimally
 // based on distance, using a priority queue to build the MST.
@@ -40,7 +42,7 @@ func NewIslSatelliteCentricMstProtocol() *IslSatelliteCentricMstProtocol {
 }
 
 // Mount binds the protocol to a satellite
-func (p *IslSatelliteCentricMstProtocol) Mount(sat types.INode) {
+func (p *IslSatelliteCentricMstProtocol) Mount(sat types.Node) {
 	if p.satellite == nil {
 		if s, ok := sat.(*satmod.Satellite); ok {
 			p.satellite = s
@@ -49,7 +51,7 @@ func (p *IslSatelliteCentricMstProtocol) Mount(sat types.INode) {
 }
 
 // AddLink adds a possible link between satellites to be considered in MST
-func (p *IslSatelliteCentricMstProtocol) AddLink(link types.ILink) {
+func (p *IslSatelliteCentricMstProtocol) AddLink(link types.Link) {
 	if isl, ok := link.(*linkmod.IslLink); ok {
 		p.mu.Lock()
 		defer p.mu.Unlock()
@@ -58,12 +60,12 @@ func (p *IslSatelliteCentricMstProtocol) AddLink(link types.ILink) {
 }
 
 // ConnectSatellite is not implemented in this strategy
-func (p *IslSatelliteCentricMstProtocol) ConnectSatellite(s types.INode) error {
+func (p *IslSatelliteCentricMstProtocol) ConnectSatellite(s types.Node) error {
 	return errors.New("ConnectSatellite not implemented")
 }
 
 // ConnectLink immediately establishes the given link
-func (p *IslSatelliteCentricMstProtocol) ConnectLink(link types.ILink) error {
+func (p *IslSatelliteCentricMstProtocol) ConnectLink(link types.Link) error {
 	if isl, ok := link.(*linkmod.IslLink); ok {
 		p.mu.Lock()
 		defer p.mu.Unlock()
@@ -73,12 +75,12 @@ func (p *IslSatelliteCentricMstProtocol) ConnectLink(link types.ILink) error {
 }
 
 // DisconnectSatellite is not implemented in this strategy
-func (p *IslSatelliteCentricMstProtocol) DisconnectSatellite(s types.INode) error {
+func (p *IslSatelliteCentricMstProtocol) DisconnectSatellite(s types.Node) error {
 	return errors.New("DisconnectSatellite not implemented")
 }
 
 // DisconnectLink removes a link from the list of established connections
-func (p *IslSatelliteCentricMstProtocol) DisconnectLink(link types.ILink) error {
+func (p *IslSatelliteCentricMstProtocol) DisconnectLink(link types.Link) error {
 	if isl, ok := link.(*linkmod.IslLink); ok {
 		p.mu.Lock()
 		defer p.mu.Unlock()
@@ -94,7 +96,7 @@ func (p *IslSatelliteCentricMstProtocol) DisconnectLink(link types.ILink) error 
 
 // UpdateLinks calculates a minimum spanning tree of inter-satellite links
 // If position hasn't changed, returns cached result
-func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.ILink, error) {
+func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.Link, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -107,7 +109,7 @@ func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.ILink, error) {
 		case <-p.readyCh:
 		default:
 		}
-		result := make([]types.ILink, len(p.established))
+		result := make([]types.Link, len(p.established))
 		for i, l := range p.established {
 			result[i] = l
 		}
@@ -199,7 +201,7 @@ func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.ILink, error) {
 	}
 
 	// Convert to []types.ILink for interface compliance
-	result := make([]types.ILink, len(mst))
+	result := make([]types.Link, len(mst))
 	for i, l := range mst {
 		result[i] = l
 	}
@@ -207,10 +209,10 @@ func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.ILink, error) {
 }
 
 // Links returns all known candidate ISL links
-func (p *IslSatelliteCentricMstProtocol) Links() []types.ILink {
+func (p *IslSatelliteCentricMstProtocol) Links() []types.Link {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	res := make([]types.ILink, len(p.links))
+	res := make([]types.Link, len(p.links))
 	for i, l := range p.links {
 		res[i] = l
 	}
@@ -218,10 +220,10 @@ func (p *IslSatelliteCentricMstProtocol) Links() []types.ILink {
 }
 
 // Established returns the currently active ISL links
-func (p *IslSatelliteCentricMstProtocol) Established() []types.ILink {
+func (p *IslSatelliteCentricMstProtocol) Established() []types.Link {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	res := make([]types.ILink, len(p.established))
+	res := make([]types.Link, len(p.established))
 	for i, l := range p.established {
 		res[i] = l
 	}

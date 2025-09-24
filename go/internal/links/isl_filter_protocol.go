@@ -8,27 +8,29 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+var _ types.InterSatelliteLinkProtocol = (*IslFilterProtocol)(nil)
+
 // IslFilterProtocol wraps another IInterSatelliteLinkProtocol and filters links
 // so that only those involving the mounted node are retained and processed.
 type IslFilterProtocol struct {
-	inner       types.IInterSatelliteLinkProtocol
-	satellite   types.INode
+	inner       types.InterSatelliteLinkProtocol
+	satellite   types.Node
 	links       map[*linktypes.IslLink]struct{}
-	established map[*linktypes.IslLink]struct{}
+	established map[types.Link]struct{}
 	mu          sync.Mutex
 }
 
 // NewIslFilterProtocol initializes the filter protocol
-func NewIslFilterProtocol(inner types.IInterSatelliteLinkProtocol) *IslFilterProtocol {
+func NewIslFilterProtocol(inner types.InterSatelliteLinkProtocol) *IslFilterProtocol {
 	return &IslFilterProtocol{
 		inner:       inner,
 		links:       make(map[*linktypes.IslLink]struct{}),
-		established: make(map[*linktypes.IslLink]struct{}),
+		established: make(map[types.Link]struct{}),
 	}
 }
 
 // Mount binds the protocol to a specific node
-func (p *IslFilterProtocol) Mount(s types.INode) {
+func (p *IslFilterProtocol) Mount(s types.Node) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.satellite == nil {
@@ -38,7 +40,7 @@ func (p *IslFilterProtocol) Mount(s types.INode) {
 }
 
 // AddLink includes a link if relevant to the mounted node
-func (p *IslFilterProtocol) AddLink(link types.ILink) {
+func (p *IslFilterProtocol) AddLink(link types.Link) {
 	if isl, ok := link.(*linktypes.IslLink); ok {
 		p.mu.Lock()
 		defer p.mu.Unlock()
@@ -50,21 +52,17 @@ func (p *IslFilterProtocol) AddLink(link types.ILink) {
 }
 
 // ConnectLink establishes a specific link if relevant
-func (p *IslFilterProtocol) ConnectLink(link types.ILink) error {
-	if isl, ok := link.(*linktypes.IslLink); ok {
-		p.mu.Lock()
-		defer p.mu.Unlock()
-		if _, ok := p.links[isl]; ok {
-			p.established[isl] = struct{}{}
-			isl.SetEstablished(true)
-		}
-		return p.inner.ConnectLink(isl)
-	}
-	return nil
+func (p *IslFilterProtocol) ConnectLink(link types.Link) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.established[link] = struct{}{}
+	// link.SetEstablished(true)
+	return p.inner.ConnectLink(link)
 }
 
 // DisconnectLink removes a link from the established set
-func (p *IslFilterProtocol) DisconnectLink(link types.ILink) error {
+func (p *IslFilterProtocol) DisconnectLink(link types.Link) error {
 	if isl, ok := link.(*linktypes.IslLink); ok {
 		p.mu.Lock()
 		defer p.mu.Unlock()
@@ -76,7 +74,7 @@ func (p *IslFilterProtocol) DisconnectLink(link types.ILink) error {
 }
 
 // ConnectSatellite connects to all links involving the given satellite
-func (p *IslFilterProtocol) ConnectSatellite(s types.INode) error {
+func (p *IslFilterProtocol) ConnectSatellite(s types.Node) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if s.GetName() == p.satellite.GetName() {
@@ -91,7 +89,7 @@ func (p *IslFilterProtocol) ConnectSatellite(s types.INode) error {
 }
 
 // DisconnectSatellite disconnects all links involving the given satellite
-func (p *IslFilterProtocol) DisconnectSatellite(s types.INode) error {
+func (p *IslFilterProtocol) DisconnectSatellite(s types.Node) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if s.GetName() == p.satellite.GetName() {
@@ -106,7 +104,7 @@ func (p *IslFilterProtocol) DisconnectSatellite(s types.INode) error {
 }
 
 // UpdateLinks applies the inner protocol update and filters results
-func (p *IslFilterProtocol) UpdateLinks() ([]types.ILink, error) {
+func (p *IslFilterProtocol) UpdateLinks() ([]types.Link, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -119,7 +117,7 @@ func (p *IslFilterProtocol) UpdateLinks() ([]types.ILink, error) {
 		return nil, err
 	}
 
-	filtered := make([]types.ILink, 0, len(all))
+	filtered := make([]types.Link, 0, len(all))
 	for _, link := range all {
 		if isl, ok := link.(*linktypes.IslLink); ok {
 			if isl.Involves(p.satellite) {
@@ -133,10 +131,10 @@ func (p *IslFilterProtocol) UpdateLinks() ([]types.ILink, error) {
 }
 
 // Links returns all relevant links for the mounted node
-func (p *IslFilterProtocol) Links() []types.ILink {
+func (p *IslFilterProtocol) Links() []types.Link {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	out := make([]types.ILink, 0, len(p.links))
+	out := make([]types.Link, 0, len(p.links))
 	for l := range p.links {
 		out = append(out, l)
 	}
@@ -144,10 +142,10 @@ func (p *IslFilterProtocol) Links() []types.ILink {
 }
 
 // Established returns only active links involving the node
-func (p *IslFilterProtocol) Established() []types.ILink {
+func (p *IslFilterProtocol) Established() []types.Link {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	out := make([]types.ILink, 0, len(p.established))
+	out := make([]types.Link, 0, len(p.established))
 	for l := range p.established {
 		out = append(out, l)
 	}
