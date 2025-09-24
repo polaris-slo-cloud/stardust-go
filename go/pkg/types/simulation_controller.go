@@ -15,4 +15,5 @@ type SimulationController interface {
 	GetSatellites() []*Satellite
 	GetGroundStations() []*GroundStation
 	GetSimulationTime() time.Time
+	GetStatePluginRepository() *StatePluginRepository
 }

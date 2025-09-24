@@ -21,13 +21,14 @@ type SimulationService struct {
 	routerBuilder    *routing.RouterBuilder
 	computingBuilder *computing.DefaultComputingBuilder
 
-	all         []types.Node
-	satellites  []*types.Satellite
-	groundNodes []*types.GroundStation
-	plugins     []types.SimulationPlugin
-	simTime     time.Time
-	maxCores    int
-	lock        sync.Mutex
+	all             []types.Node
+	satellites      []*types.Satellite
+	groundNodes     []*types.GroundStation
+	simplugins      []types.SimulationPlugin
+	statePluginRepo *types.StatePluginRepository
+	simTime         time.Time
+	maxCores        int
+	lock            sync.Mutex
 
 	autorun      bool
 	running      bool
@@ -40,6 +41,7 @@ func NewSimulationService(
 	router *routing.RouterBuilder,
 	computing *computing.DefaultComputingBuilder,
 	plugins []types.SimulationPlugin,
+	statePluginRepo *types.StatePluginRepository,
 ) *SimulationService {
 	return &SimulationService{
 		config:           config,
@@ -50,7 +52,8 @@ func NewSimulationService(
 		groundNodes:      []*types.GroundStation{},
 		simTime:          config.SimulationStartTime,
 		maxCores:         config.MaxCpuCores,
-		plugins:          plugins,
+		simplugins:       plugins,
+		statePluginRepo:  statePluginRepo,
 	}
 }
 
@@ -197,8 +200,13 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 		// s.orchestrator.CheckReschedule()
 	}
 
-	// Execute post-step plugins
-	for _, plugin := range s.plugins {
+	// Execute post-step state plugins
+	for _, plugin := range s.statePluginRepo.GetAllPlugins() {
+		plugin.PostSimulationStep(s)
+	}
+
+	// Execute post-step simulation plugins
+	for _, plugin := range s.simplugins {
 		if err := plugin.PostSimulationStep(s); err != nil {
 			log.Printf("Plugin %s PostSimulationStep error: %v", plugin.Name(), err)
 		}
@@ -223,4 +231,8 @@ func (s *SimulationService) GetGroundStations() []*types.GroundStation {
 
 func (s *SimulationService) GetSimulationTime() time.Time {
 	return s.simTime
+}
+
+func (s *SimulationService) GetStatePluginRepository() *types.StatePluginRepository {
+	return s.statePluginRepo
 }

@@ -9,10 +9,12 @@ import (
 	"github.com/keniack/stardustGo/internal/computing"
 	"github.com/keniack/stardustGo/internal/deployment"
 	"github.com/keniack/stardustGo/internal/ground"
-	"github.com/keniack/stardustGo/internal/plugin"
 	"github.com/keniack/stardustGo/internal/routing"
 	"github.com/keniack/stardustGo/internal/satellite"
+	"github.com/keniack/stardustGo/internal/simplugin"
 	"github.com/keniack/stardustGo/internal/simulation"
+	"github.com/keniack/stardustGo/internal/stateplugin"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 func main() {
@@ -34,11 +36,19 @@ func main() {
 	// Step 3: Build router builder
 	routerBuilder := routing.NewRouterBuilder(cfg.Router)
 
-	// Step 4: Initialize plugin builder
-	pluginBuilder := plugin.NewPluginBuilder()
-	plugins, err := pluginBuilder.BuildPlugins(cfg.Simulation.Plugins)
+	// Step 4.1: Initialize plugin builder
+	simPluginBuilder := simplugin.NewPluginBuilder()
+	simPlugins, err := simPluginBuilder.BuildPlugins(cfg.Simulation.Plugins)
 	if err != nil {
-		log.Fatalf("Failed to build plugins: %v", err)
+		log.Fatalf("Failed to build simualtion plugins: %v", err)
+		return
+	}
+
+	// Step 4.2: Initialize state plugin builder
+	statePluginBuilder := stateplugin.NewStatePluginBuilder()
+	statePlugins, err := statePluginBuilder.BuildPlugins(cfg.Simulation.Plugins)
+	if err != nil {
+		log.Fatalf("Failed to build state plugins: %v", err)
 		return
 	}
 
@@ -55,7 +65,7 @@ func main() {
 	constellationLoader.RegisterDataSourceLoader("tle", tleLoader)
 
 	// Step 5: Initialize simulation service
-	simService := simulation.NewSimulationService(cfg.Simulation, routerBuilder, computingBuilder, plugins)
+	simService := simulation.NewSimulationService(cfg.Simulation, routerBuilder, computingBuilder, simPlugins, types.NewStatePluginRepository(statePlugins))
 
 	// Step 6: Inject orchestrator (if used)
 	orchestrator := deployment.NewDeploymentOrchestrator()
@@ -86,20 +96,25 @@ func main() {
 			var ground2 = sats[80]
 			var l1 = ground1.GetLinkNodeProtocol().Established()[0]
 			var l2 = ground2.GetLinkNodeProtocol().Established()[0]
+			var uplinkSat1 = l1.GetOther(ground1)
+			var uplinkSat2 = l2.GetOther(ground2)
 			var route, err = ground1.BaseNode.Router.RouteAsyncToNode(ground2, nil)
-			var x, _ = l1.GetOther(ground1).GetRouter().RouteAsyncToNode(l2.GetOther(ground2), nil)
+			var x, _ = uplinkSat1.GetRouter().RouteAsyncToNode(uplinkSat2, nil)
 			if err != nil {
 				log.Println("Routing error:", err)
 			} else {
 				log.Println("Route from", ground1.GetName(), "to", ground2.GetName(), "in", route.Latency(), "ms")
 				log.Println("Latency between uplink nodes:", x.Latency(), "ms")
-				log.Println(l1.GetOther(ground1).GetName(), "->", l2.GetOther(ground2).GetName())
+				log.Println(uplinkSat1.GetName(), "->", l2.GetOther(ground2).GetName())
 				log.Println(ground1.DistanceTo(ground2)/1000, "km apart")
-				log.Println(l1.Distance(), "km apart", ground2.DistanceTo(l1.GetOther(ground1)))
-				log.Println(l2.Distance(), "km apart", ground1.DistanceTo(l2.GetOther(ground2)))
+				log.Println(l1.Distance(), "km apart", ground2.DistanceTo(uplinkSat1))
+				log.Println(l2.Distance(), "km apart", ground1.DistanceTo(uplinkSat2))
 			}
 			log.Println(len(sats), "satellites in simulation.")
 			log.Println("Simulation stepped by 60 seconds.")
+
+			var statePlugin = types.GetStatePlugin[*stateplugin.DummySunStatePlugin](simService.GetStatePluginRepository())
+			log.Println("Sunlight exposure of", uplinkSat1.GetName(), "is", statePlugin.GetSunlightExposure(uplinkSat1))
 		}
 	}
 }
