@@ -1,15 +1,13 @@
-package node
+package types
 
 import (
 	"errors"
 	"math"
 	"sync"
 	"time"
-
-	"github.com/keniack/stardustGo/pkg/types"
 )
 
-var _ types.Node = (*GroundStation)(nil)
+var _ Node = (*GroundStation)(nil)
 
 // GroundStation represents an Earth-based node that links to satellites
 // It updates its position over time and tracks the nearest satellites
@@ -19,14 +17,14 @@ type GroundStation struct {
 	Latitude                    float64
 	Longitude                   float64
 	SimulationStartTime         time.Time
-	GroundSatelliteLinkProtocol types.GroundSatelliteLinkProtocol
+	GroundSatelliteLinkProtocol GroundSatelliteLinkProtocol
 
-	Position types.Vector
+	Position Vector
 	mu       sync.Mutex
 }
 
 // NewGroundStation creates and initializes a new ground station with link protocol and position
-func NewGroundStation(name string, lat float64, lon float64, protocol types.GroundSatelliteLinkProtocol, simStart time.Time, router types.Router, computing types.Computing) *GroundStation {
+func NewGroundStation(name string, lat float64, lon float64, protocol GroundSatelliteLinkProtocol, simStart time.Time, router Router, computing Computing) *GroundStation {
 	gs := &GroundStation{
 		BaseNode: BaseNode{
 			Name:      name,
@@ -48,11 +46,11 @@ func (gs *GroundStation) GetName() string {
 	return gs.Name
 }
 
-func (gs *GroundStation) PositionVector() types.Vector {
+func (gs *GroundStation) PositionVector() Vector {
 	return gs.Position
 }
 
-func (gs *GroundStation) DistanceTo(other types.Node) float64 {
+func (gs *GroundStation) DistanceTo(other Node) float64 {
 	return gs.Position.Subtract(other.PositionVector()).Magnitude()
 }
 
@@ -74,8 +72,8 @@ func (gs *GroundStation) UpdatePositionFromElapsed(timeElapsed float64) {
 		rotationSpeed = 7.2921150e-5    // Earth's rotation speed rad/s
 	)
 
-	latRad := types.DegreesToRadians(gs.Latitude)
-	lonRad := types.DegreesToRadians(gs.Longitude)
+	latRad := DegreesToRadians(gs.Latitude)
+	lonRad := DegreesToRadians(gs.Longitude)
 	alt := 0.0
 
 	N := a / math.Sqrt(1-e2*math.Sin(latRad)*math.Sin(latRad))
@@ -89,10 +87,10 @@ func (gs *GroundStation) UpdatePositionFromElapsed(timeElapsed float64) {
 	yRot := x*math.Sin(theta) + y*math.Cos(theta)
 	zRot := z
 
-	gs.Position = types.Vector{X: xRot, Y: yRot, Z: zRot}
+	gs.Position = Vector{X: xRot, Y: yRot, Z: zRot}
 }
 
-func (gs *GroundStation) GetLinkNodeProtocol() types.LinkNodeProtocol {
+func (gs *GroundStation) GetLinkNodeProtocol() LinkNodeProtocol {
 	return gs.GroundSatelliteLinkProtocol
 }
 
@@ -113,14 +111,14 @@ func (gs *GroundStation) FindNearestSatellite(sats []*Satellite) (*Satellite, er
 	return nearest, nil
 }
 
-func (gs *GroundStation) GetLinks() []types.Link {
+func (gs *GroundStation) GetLinks() []Link {
 	return gs.GroundSatelliteLinkProtocol.Links()
 }
 
-func (gs *GroundStation) GetEstablishedLinks() []types.Link {
+func (gs *GroundStation) GetEstablishedLinks() []Link {
 	return gs.GroundSatelliteLinkProtocol.Established()
 }
 
-func (gs *GroundStation) GetRouter() types.Router {
+func (gs *GroundStation) GetRouter() Router {
 	return gs.Router
 }

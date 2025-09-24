@@ -12,7 +12,7 @@ import (
 
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/links"
-	"github.com/keniack/stardustGo/internal/node"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 const (
@@ -35,9 +35,9 @@ func NewTleLoader(config configs.InterSatelliteLinkConfig, builder *SatelliteBui
 }
 
 // Load parses the TLE stream into Satellite instances.
-func (l *TleLoader) Load(r io.Reader) ([]*node.Satellite, error) {
+func (l *TleLoader) Load(r io.Reader) ([]*types.Satellite, error) {
 	scanner := bufio.NewScanner(r)
-	var satellites []*node.Satellite
+	var satellites []*types.Satellite
 
 	for scanner.Scan() {
 		line1 := strings.TrimSpace(scanner.Text())

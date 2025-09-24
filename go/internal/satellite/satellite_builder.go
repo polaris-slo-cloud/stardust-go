@@ -6,8 +6,8 @@ import (
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/computing"
 	"github.com/keniack/stardustGo/internal/links"
-	"github.com/keniack/stardustGo/internal/node"
 	"github.com/keniack/stardustGo/internal/routing"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // SatelliteBuilder helps construct Satellite instances with ISL, routing, and computing configuration.
@@ -85,7 +85,7 @@ func (b *SatelliteBuilder) ConfigureISL(fn func(builder *links.IslProtocolBuilde
 }
 
 // Build constructs the Satellite instance from configured parameters.
-func (b *SatelliteBuilder) Build() *node.Satellite {
+func (b *SatelliteBuilder) Build() *types.Satellite {
 	// Handle the error returned by routerBuilder.Build()
 	router, err := b.routerBuilder.Build()
 	if err != nil {
@@ -94,7 +94,7 @@ func (b *SatelliteBuilder) Build() *node.Satellite {
 		panic("failed to build router: " + err.Error())
 	}
 
-	return node.NewSatellite(
+	return types.NewSatellite(
 		b.name,
 		b.inclination,
 		b.rightAscension,

@@ -9,12 +9,11 @@ import (
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/computing"
 	"github.com/keniack/stardustGo/internal/deployment"
-	"github.com/keniack/stardustGo/internal/node"
 	"github.com/keniack/stardustGo/internal/routing"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
-var _ SimulationController = (*SimulationService)(nil)
+var _ types.SimulationController = (*SimulationService)(nil)
 
 // SimulationService handles simulation lifecycle and state updates
 type SimulationService struct {
@@ -23,8 +22,9 @@ type SimulationService struct {
 	computingBuilder *computing.DefaultComputingBuilder
 
 	all         []types.Node
-	satellites  []*node.Satellite
-	groundNodes []*node.GroundStation
+	satellites  []*types.Satellite
+	groundNodes []*types.GroundStation
+	plugins     []types.SimulationPlugin
 	simTime     time.Time
 	maxCores    int
 	lock        sync.Mutex
@@ -39,16 +39,18 @@ func NewSimulationService(
 	config configs.SimulationConfig,
 	router *routing.RouterBuilder,
 	computing *computing.DefaultComputingBuilder,
+	plugins []types.SimulationPlugin,
 ) *SimulationService {
 	return &SimulationService{
 		config:           config,
 		routerBuilder:    router,
 		computingBuilder: computing,
 		all:              []types.Node{},
-		satellites:       []*node.Satellite{},
-		groundNodes:      []*node.GroundStation{},
+		satellites:       []*types.Satellite{},
+		groundNodes:      []*types.GroundStation{},
 		simTime:          config.SimulationStartTime,
 		maxCores:         config.MaxCpuCores,
+		plugins:          plugins,
 	}
 }
 
@@ -59,9 +61,9 @@ func (s *SimulationService) Inject(o *deployment.DeploymentOrchestrator) {
 
 // InjectSatellites adds the loaded satellites to the simulation scope
 func (s *SimulationService) InjectSatellites(satellites []types.Node) error {
-	s.satellites = make([]*node.Satellite, 0, len(satellites))
+	s.satellites = make([]*types.Satellite, 0, len(satellites))
 	for _, n := range satellites {
-		sat, ok := n.(*node.Satellite)
+		sat, ok := n.(*types.Satellite)
 		if !ok {
 			return fmt.Errorf("InjectSatellites: expected *node.Satellite but got %T", n)
 		}
@@ -75,9 +77,9 @@ func (s *SimulationService) InjectSatellites(satellites []types.Node) error {
 
 // InjectGroundStations adds the loaded ground stations to the simulation scope
 func (s *SimulationService) InjectGroundStations(groundStations []types.Node) error {
-	s.groundNodes = make([]*node.GroundStation, 0, len(groundStations))
+	s.groundNodes = make([]*types.GroundStation, 0, len(groundStations))
 	for _, n := range groundStations {
-		gs, ok := n.(*node.GroundStation)
+		gs, ok := n.(*types.GroundStation)
 		if !ok {
 			return fmt.Errorf("InjectGroundStations: expected *node.GroundStation but got %T", n)
 		}
@@ -195,6 +197,13 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 		// s.orchestrator.CheckReschedule()
 	}
 
+	// Execute post-step plugins
+	for _, plugin := range s.plugins {
+		if err := plugin.PostSimulationStep(s); err != nil {
+			log.Printf("Plugin %s PostSimulationStep error: %v", plugin.Name(), err)
+		}
+	}
+
 	time.Sleep(1 * time.Second) // Simulate step duration
 
 	s.running = false
@@ -204,10 +213,14 @@ func (s *SimulationService) GetAllNodes() []types.Node {
 	return s.all
 }
 
-func (s *SimulationService) GetSatellites() []*node.Satellite {
+func (s *SimulationService) GetSatellites() []*types.Satellite {
 	return s.satellites
 }
 
-func (s *SimulationService) GetGroundStations() []*node.GroundStation {
+func (s *SimulationService) GetGroundStations() []*types.GroundStation {
 	return s.groundNodes
+}
+
+func (s *SimulationService) GetSimulationTime() time.Time {
+	return s.simTime
 }

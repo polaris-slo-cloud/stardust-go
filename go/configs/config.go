@@ -30,6 +30,7 @@ type SimulationConfig struct {
 	UsePreRouteCalc             bool      `json:"UsePreRouteCalc" yaml:"UsePreRouteCalc"`
 	MaxCpuCores                 int       `json:"MaxCpuCores" yaml:"MaxCpuCores"`
 	SimulationStartTime         time.Time `json:"SimulationStartTime" yaml:"SimulationStartTime"`
+	Plugins                     []string  `json:"Plugins" yaml:"Plugins"`
 }
 
 type InterSatelliteLinkConfig struct {

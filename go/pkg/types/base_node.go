@@ -1,9 +1,7 @@
-package node
+package types
 
 import (
 	"math"
-
-	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // Node defines a common interface/base for satellites and ground stations
@@ -11,9 +9,9 @@ import (
 
 type BaseNode struct {
 	Name      string
-	Router    types.Router
-	Computing types.Computing
-	Position  types.Vector
+	Router    Router
+	Computing Computing
+	Position  Vector
 }
 
 func (n *BaseNode) DistanceTo(other *BaseNode) float64 {
@@ -23,6 +21,6 @@ func (n *BaseNode) DistanceTo(other *BaseNode) float64 {
 	return math.Sqrt(dx*dx + dy*dy + dz*dz)
 }
 
-func (n *BaseNode) GetComputing() types.Computing {
+func (n *BaseNode) GetComputing() Computing {
 	return n.Computing
 }

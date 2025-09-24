@@ -6,8 +6,8 @@ import (
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/computing"
 	"github.com/keniack/stardustGo/internal/links"
-	"github.com/keniack/stardustGo/internal/node"
 	"github.com/keniack/stardustGo/internal/routing"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 type GroundStationBuilder struct {
@@ -62,13 +62,13 @@ func (b *GroundStationBuilder) ConfigureGroundLinkProtocol(fn func(*links.Ground
 	return b
 }
 
-func (b *GroundStationBuilder) Build() *node.GroundStation {
+func (b *GroundStationBuilder) Build() *types.GroundStation {
 	router, err := b.routerBuilder.Build()
 	if err != nil {
 		panic(err)
 	}
 
-	return node.NewGroundStation(
+	return types.NewGroundStation(
 		b.name,
 		b.latitude,
 		b.longitude,

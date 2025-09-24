@@ -1,13 +1,15 @@
 SimulationConfiguration:
   StepInterval: -1
   StepMultiplier: 10
-  SatelliteDataSource: starlink_newest.tle
+  SatelliteDataSource: starlink_500.tle
   SatelliteDataSourceType: tle
   GroundStationDataSource: ground_stations.yml
   GroundStationDataSourceType: yml
   UsePreRouteCalc: false
   MaxCpuCores: 30
   SimulationStartTime: "2025-01-01T00:00:00Z"
+  Plugins:
+    - DummyPlugin
 InterSatelliteLinkConfig:
   Neighbours: 4
   Protocol: mst_smart_loop
