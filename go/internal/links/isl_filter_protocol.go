@@ -16,7 +16,7 @@ type IslFilterProtocol struct {
 	inner       types.InterSatelliteLinkProtocol
 	satellite   types.Node
 	links       map[*linktypes.IslLink]struct{}
-	established map[*linktypes.IslLink]struct{}
+	established map[types.Link]struct{}
 	mu          sync.Mutex
 }
 
@@ -25,7 +25,7 @@ func NewIslFilterProtocol(inner types.InterSatelliteLinkProtocol) *IslFilterProt
 	return &IslFilterProtocol{
 		inner:       inner,
 		links:       make(map[*linktypes.IslLink]struct{}),
-		established: make(map[*linktypes.IslLink]struct{}),
+		established: make(map[types.Link]struct{}),
 	}
 }
 
@@ -53,16 +53,12 @@ func (p *IslFilterProtocol) AddLink(link types.Link) {
 
 // ConnectLink establishes a specific link if relevant
 func (p *IslFilterProtocol) ConnectLink(link types.Link) error {
-	if isl, ok := link.(*linktypes.IslLink); ok {
-		p.mu.Lock()
-		defer p.mu.Unlock()
-		if _, ok := p.links[isl]; ok {
-			p.established[isl] = struct{}{}
-			isl.SetEstablished(true)
-		}
-		return p.inner.ConnectLink(isl)
-	}
-	return nil
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.established[link] = struct{}{}
+	// link.SetEstablished(true)
+	return p.inner.ConnectLink(link)
 }
 
 // DisconnectLink removes a link from the established set

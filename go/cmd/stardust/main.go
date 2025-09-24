@@ -46,18 +46,18 @@ func main() {
 	satBuilder := satellite.NewSatelliteBuilder(routerBuilder, computingBuilder, cfg.ISL)
 	tleLoader := satellite.NewTleLoader(cfg.ISL, satBuilder)
 
-	// Step 5.2: Initialize constellation loader and register TLE loader
+	// Step 4.2: Initialize the ground station loader
+	groundStationBuilder := ground.NewGroundStationBuilder(cfg.Simulation.SimulationStartTime, routerBuilder, computingBuilder, cfg.Ground)
+	ymlLoader := ground.NewGroundStationYmlLoader(cfg.Ground, groundStationBuilder)
+
+	// Step 4.3: Initialize constellation loader and register TLE loader
 	constellationLoader := satellite.NewSatelliteConstellationLoader()
 	constellationLoader.RegisterDataSourceLoader("tle", tleLoader)
 
-	// Step 5.3: Initialize the ground station loader
-	groundStationBuilder := ground.NewGroundStationBuilder(cfg.Simulation.SimulationStartTime, routerBuilder, computingBuilder)
-	ymlLoader := ground.NewGroundStationYmlLoader(cfg.Ground, groundStationBuilder)
+	// Step 5: Initialize simulation service
+	simService := simulation.NewSimulationService(cfg.Simulation, routerBuilder, computingBuilder)
 
-	// Step 6: Initialize simulation service
-	simService := simulation.NewSimulationService(cfg.Simulation, routerBuilder, computingBuilder, plugins)
-
-	// Step 7: Inject orchestrator (if used)
+	// Step 6: Inject orchestrator (if used)
 	orchestrator := deployment.NewDeploymentOrchestrator()
 	simService.Inject(orchestrator)
 
@@ -79,9 +79,27 @@ func main() {
 		<-done // blocks main goroutine until simulation stops
 	} else {
 		log.Println("Simulation loaded. Not autorunning as StepInterval < 0.")
-		simService.StepBySeconds(60) // Example: step by 60 seconds
-		var sats = simService.GetGroundStations()
-		log.Println(len(sats), "satellites in simulation.")
-		log.Println("Simulation stepped by 60 seconds.")
+		for range 10 {
+			simService.StepBySeconds(60) // Example: step by 60 seconds
+			var sats = simService.GetGroundStations()
+			var ground1 = sats[0]
+			var ground2 = sats[80]
+			var l1 = ground1.GetLinkNodeProtocol().Established()[0]
+			var l2 = ground2.GetLinkNodeProtocol().Established()[0]
+			var route, err = ground1.BaseNode.Router.RouteAsyncToNode(ground2, nil)
+			var x, _ = l1.GetOther(ground1).GetRouter().RouteAsyncToNode(l2.GetOther(ground2), nil)
+			if err != nil {
+				log.Println("Routing error:", err)
+			} else {
+				log.Println("Route from", ground1.GetName(), "to", ground2.GetName(), "in", route.Latency(), "ms")
+				log.Println("Latency between uplink nodes:", x.Latency(), "ms")
+				log.Println(l1.GetOther(ground1).GetName(), "->", l2.GetOther(ground2).GetName())
+				log.Println(ground1.DistanceTo(ground2)/1000, "km apart")
+				log.Println(l1.Distance(), "km apart", ground2.DistanceTo(l1.GetOther(ground1)))
+				log.Println(l2.Distance(), "km apart", ground1.DistanceTo(l2.GetOther(ground2)))
+			}
+			log.Println(len(sats), "satellites in simulation.")
+			log.Println("Simulation stepped by 60 seconds.")
+		}
 	}
 }

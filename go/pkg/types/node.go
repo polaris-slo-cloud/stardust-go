@@ -8,11 +8,9 @@ type Node interface {
 	GetName() string
 	PositionVector() Vector
 	DistanceTo(other Node) float64
-	GetLinks() []Link
 	UpdatePosition(simTime time.Time)
-}
-
-type NodeWithISL interface {
-	Node
-	InterSatelliteLinkProtocol() InterSatelliteLinkProtocol
+	GetLinks() []Link
+	GetEstablishedLinks() []Link
+	GetLinkNodeProtocol() LinkNodeProtocol
+	GetRouter() Router
 }

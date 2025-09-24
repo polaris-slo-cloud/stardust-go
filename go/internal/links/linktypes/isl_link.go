@@ -26,9 +26,7 @@ func NewIslLink(n1, n2 types.Node) *IslLink {
 
 // Distance returns the link distance in meters.
 func (l *IslLink) Distance() float64 {
-	pos1 := l.Node1.PositionVector()
-	pos2 := l.Node2.PositionVector()
-	return pos1.Sub(pos2).Magnitude()
+	return l.Node1.DistanceTo(l.Node2)
 }
 
 // Latency returns the communication latency in milliseconds.
@@ -43,7 +41,7 @@ func (l *IslLink) Bandwidth() float64 {
 
 // IsReachable checks if line-of-sight is available.
 func (l *IslLink) IsReachable() bool {
-	v := l.Node2.PositionVector().Sub(l.Node1.PositionVector())
+	v := l.Node2.PositionVector().Subtract(l.Node1.PositionVector())
 	cross := v.Cross(l.Node1.PositionVector())
 	d := cross.Magnitude() / v.Magnitude()
 	return d > configs.EarthRadius+10_000 // 10 km buffer
@@ -70,4 +68,8 @@ func (l *IslLink) Established() bool {
 
 func (l *IslLink) SetEstablished(val bool) {
 	l.isEstablished = val
+}
+
+func (l *IslLink) Nodes() (types.Node, types.Node) {
+	return l.Node1, l.Node2
 }

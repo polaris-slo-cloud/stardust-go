@@ -34,7 +34,7 @@ func NewGroundStationYmlLoader(
 	}
 }
 
-func (l *GroundStationYmlLoader) Load(path string) ([]*node.GroundStation, error) {
+func (l *GroundStationYmlLoader) Load(path string, satellites []*node.Satellite) ([]*node.GroundStation, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		log.Fatalf("Failed to open ground station file: %v", err)
@@ -56,8 +56,10 @@ func (l *GroundStationYmlLoader) Load(path string) ([]*node.GroundStation, error
 			SetLatitude(gs.Lat).
 			SetLongitude(gs.Lon).
 			SetComputingType(gs.ComputingType).
-			ConfigureGroundLinkProtocol(func(p links.GroundProtocolBuilder) links.GroundProtocolBuilder {
-				return *p.SetProtocol(gs.Protocol)
+			ConfigureGroundLinkProtocol(func(p *links.GroundProtocolBuilder) *links.GroundProtocolBuilder {
+				return p.
+					SetProtocol(gs.Protocol).
+					SetSatellites(satellites)
 			}).
 			Build()
 		result = append(result, station)

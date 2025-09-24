@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/helper"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
@@ -17,14 +18,15 @@ var _ types.InterSatelliteLinkProtocol = (*IslPstProtocol)(nil)
 type IslPstProtocol struct {
 	setLink     map[*linktypes.IslLink]struct{} // All candidate links seen by the protocol
 	established []*linktypes.IslLink            // Currently active links
+	resultCache []types.Link                    // Cached result of last UpdateLinks
 
 	satellite      types.Node                // The satellite this protocol is mounted to
-	satellites     []types.NodeWithISL       // All reachable satellites
+	satellites     []types.Node              // All reachable satellites
 	representative map[types.Node]types.Node // Union-find mapping for MST cycles
 
-	position types.Vector  // Last position we calculated for
-	mu       sync.Mutex    // Protects concurrent access
-	readyCh  chan struct{} // Notifies when UpdateLinks finishes (mimics ManualResetEvent)
+	position   types.Vector             // Last position we calculated for
+	mu         sync.Mutex               // Protects concurrent access
+	resetEvent *helper.ManualResetEvent // Notifies when UpdateLinks finishes
 }
 
 // NewIslPstProtocol initializes the protocol instance
@@ -33,7 +35,7 @@ func NewIslPstProtocol() *IslPstProtocol {
 		setLink:        make(map[*linktypes.IslLink]struct{}),
 		established:    []*linktypes.IslLink{},
 		representative: make(map[types.Node]types.Node),
-		readyCh:        make(chan struct{}, 1),
+		resetEvent:     helper.NewManualResetEvent(true),
 	}
 }
 
@@ -95,37 +97,29 @@ func (p *IslPstProtocol) DisconnectSatellite(s types.Node) error {
 
 // UpdateLinks recalculates which links to establish using a distributed MST-style heuristic
 func (p *IslPstProtocol) UpdateLinks() ([]types.Link, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
 	if p.satellite == nil {
 		return nil, errors.New("satellite not mounted")
 	}
 
+	p.mu.Lock()
 	if p.position.Equals(p.satellite.PositionVector()) {
-		select {
-		case <-p.readyCh:
-		default:
-		}
-		links := make([]types.Link, len(p.established))
-		for i, l := range p.established {
-			links[i] = l
-		}
-		return links, nil
+		p.mu.Unlock()
+		p.resetEvent.Wait()
+		return p.resultCache, nil
 	}
 	p.position = p.satellite.PositionVector()
+	p.resetEvent.Reset()
+	p.mu.Unlock()
 
 	satSet := make(map[types.Node]bool)
 	for l := range p.setLink {
 		satSet[l.Node1] = true
 		satSet[l.Node2] = true
 	}
-	p.satellites = []types.NodeWithISL{}
+	p.satellites = []types.Node{}
 	for s := range satSet {
-		if node, ok := s.(types.NodeWithISL); ok {
-			p.satellites = append(p.satellites, node)
-			p.representative[node] = node
-		}
+		p.satellites = append(p.satellites, s)
+		p.representative[s] = s
 	}
 
 	maxLinks := 4
@@ -133,7 +127,7 @@ func (p *IslPstProtocol) UpdateLinks() ([]types.Link, error) {
 	mstLinks := []*linktypes.IslLink{}
 
 	for _, sat := range p.satellites {
-		links := sat.InterSatelliteLinkProtocol().Links()
+		links := sat.GetLinkNodeProtocol().Links()
 		valid := []*linktypes.IslLink{}
 		for _, l := range links {
 			if isl, ok := l.(*linktypes.IslLink); ok && isl.IsReachable() {
@@ -173,16 +167,12 @@ func (p *IslPstProtocol) UpdateLinks() ([]types.Link, error) {
 	}
 	p.established = mstLinks
 
-	select {
-	case p.readyCh <- struct{}{}:
-	default:
-	}
-
-	links := make([]types.Link, len(mstLinks))
+	p.resultCache = make([]types.Link, len(mstLinks))
 	for i, l := range mstLinks {
-		links[i] = l
+		p.resultCache[i] = l
 	}
-	return links, nil
+	p.resetEvent.Set()
+	return p.resultCache, nil
 }
 
 // Links returns all registered candidate links

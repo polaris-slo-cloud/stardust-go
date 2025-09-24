@@ -14,7 +14,7 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
-var _ types.SimulationController = (*SimulationService)(nil)
+var _ SimulationController = (*SimulationService)(nil)
 
 // SimulationService handles simulation lifecycle and state updates
 type SimulationService struct {
@@ -88,7 +88,7 @@ func (s *SimulationService) InjectGroundStations(groundStations []types.Node) er
 		s.all = append(s.all, gs) // Add ground station as generic nodes
 	}
 
-	log.Printf("Injected %d ground stations into simulation", len(s.satellites))
+	log.Printf("Injected %d ground stations into simulation", len(s.groundNodes))
 	return nil
 }
 
@@ -170,16 +170,26 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 	}
 	wg.Wait()
 
-	// ISL updates (Inter-Satellite Links)
-	for _, sat := range s.satellites {
-		go sat.ISLProtocol.UpdateLinks()
+	// Link updates (ISL and ground links)
+	for _, node := range s.all {
+		wg.Add(1)
+		go func(n types.Node) {
+			defer wg.Done()
+			node.GetLinkNodeProtocol().UpdateLinks()
+		}(node)
 	}
+	wg.Wait()
 
 	// Routing and computation (if enabled)
 	if s.config.UsePreRouteCalc {
-		for _, sat := range s.satellites {
-			go sat.Router.CalculateRoutingTableAsync()
+		for _, node := range s.all {
+			wg.Add(1)
+			go func(n types.Node) {
+				defer wg.Done()
+				n.GetRouter().CalculateRoutingTableAsync()
+			}(node)
 		}
+		wg.Wait()
 	}
 
 	// Check if the orchestrator needs to reschedule
@@ -204,20 +214,12 @@ func (s *SimulationService) GetAllNodes() []types.Node {
 	return s.all
 }
 
-func (s *SimulationService) GetSatellites() []types.Node {
-	nodes := make([]types.Node, len(s.satellites))
-	for i, sat := range s.satellites {
-		nodes[i] = sat
-	}
-	return nodes
+func (s *SimulationService) GetSatellites() []*node.Satellite {
+	return s.satellites
 }
 
-func (s *SimulationService) GetGroundStations() []types.Node {
-	nodes := make([]types.Node, len(s.groundNodes))
-	for i, gs := range s.groundNodes {
-		nodes[i] = gs
-	}
-	return nodes
+func (s *SimulationService) GetGroundStations() []*node.GroundStation {
+	return s.groundNodes
 }
 
 func (s *SimulationService) GetSimulationTime() time.Time {

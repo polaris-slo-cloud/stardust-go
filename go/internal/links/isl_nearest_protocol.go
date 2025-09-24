@@ -17,17 +17,18 @@ type IslNearestProtocol struct {
 	config    configmod.InterSatelliteLinkConfig
 	satellite types.Node
 
-	mu       sync.Mutex
-	links    []*linkmod.IslLink        // All potential links
-	outgoing []*linkmod.IslLink        // Active outgoing links
-	incoming map[*linkmod.IslLink]bool // Remote links initiated by others
+	mu          sync.Mutex
+	links       []*linkmod.IslLink  // All potential links
+	outgoing    []*linkmod.IslLink  // Active outgoing links
+	incoming    map[types.Link]bool // Remote links initiated by others
+	established []types.Link        // Cached result of last UpdateLinks
 }
 
 // NewIslNearestProtocol initializes the nearest-neighbor protocol.
 func NewIslNearestProtocol(cfg configmod.InterSatelliteLinkConfig) *IslNearestProtocol {
 	return &IslNearestProtocol{
 		config:   cfg,
-		incoming: make(map[*linkmod.IslLink]bool),
+		incoming: make(map[types.Link]bool),
 	}
 }
 
@@ -49,24 +50,26 @@ func (p *IslNearestProtocol) AddLink(link types.Link) {
 
 // ConnectLink marks an incoming connection from a peer.
 func (p *IslNearestProtocol) ConnectLink(link types.Link) error {
-	if isl, ok := link.(*linkmod.IslLink); ok {
-		p.mu.Lock()
-		defer p.mu.Unlock()
-		p.incoming[isl] = true
-	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.incoming[link] = true
+	p.established = append(p.established, link)
 	return nil
 }
 
 // DisconnectLink removes the incoming status if it's not also an outgoing link.
 func (p *IslNearestProtocol) DisconnectLink(link types.Link) error {
-	if isl, ok := link.(*linkmod.IslLink); ok {
-		p.mu.Lock()
-		defer p.mu.Unlock()
-		delete(p.incoming, isl)
-		if !p.isInOutgoing(isl) {
-			isl.SetEstablished(false)
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	var newSlice []types.Link
+	for _, v := range p.established {
+		if v != link {
+			newSlice = append(newSlice, v)
 		}
 	}
+	p.established = newSlice
+	delete(p.incoming, link)
 	return nil
 }
 
@@ -96,9 +99,6 @@ func (p *IslNearestProtocol) DisconnectSatellite(s types.Node) error {
 
 // UpdateLinks reconnects to the closest N reachable satellites.
 func (p *IslNearestProtocol) UpdateLinks() ([]types.Link, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
 	if p.satellite == nil {
 		return nil, errors.New("protocol not mounted")
 	}
@@ -133,9 +133,7 @@ func (p *IslNearestProtocol) UpdateLinks() ([]types.Link, error) {
 	for _, l := range selected {
 		if _, seen := prevOut[l]; !seen {
 			if other := l.GetOther(p.satellite); other != nil {
-				if islNode, ok := other.(types.NodeWithISL); ok {
-					_ = islNode.InterSatelliteLinkProtocol().ConnectLink(l)
-				}
+				other.GetLinkNodeProtocol().ConnectLink(l)
 			}
 			l.SetEstablished(true)
 		} else {
@@ -146,19 +144,19 @@ func (p *IslNearestProtocol) UpdateLinks() ([]types.Link, error) {
 	// Disconnect dropped links
 	for l := range prevOut {
 		if other := l.GetOther(p.satellite); other != nil {
-			if islNode, ok := other.(types.NodeWithISL); ok {
-				_ = islNode.InterSatelliteLinkProtocol().DisconnectLink(l)
-			}
+			other.GetLinkNodeProtocol().DisconnectLink(l)
 		}
 		l.SetEstablished(false)
 	}
 
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	// Return current active links
-	result := make([]types.Link, len(p.outgoing))
+	p.established = make([]types.Link, len(p.outgoing))
 	for i, l := range p.outgoing {
-		result[i] = l
+		p.established[i] = l
 	}
-	return result, nil
+	return p.established, nil
 }
 
 // Links returns all known links.
@@ -174,28 +172,5 @@ func (p *IslNearestProtocol) Links() []types.Link {
 
 // Established returns all active links (incoming or outgoing).
 func (p *IslNearestProtocol) Established() []types.Link {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	seen := make(map[*linkmod.IslLink]bool)
-	for _, l := range p.outgoing {
-		seen[l] = true
-	}
-	for l := range p.incoming {
-		seen[l] = true
-	}
-	out := make([]types.Link, 0, len(seen))
-	for l := range seen {
-		out = append(out, l)
-	}
-	return out
-}
-
-// isInOutgoing checks if a link is in the current outgoing set.
-func (p *IslNearestProtocol) isInOutgoing(link *linkmod.IslLink) bool {
-	for _, l := range p.outgoing {
-		if l == link {
-			return true
-		}
-	}
-	return false
+	return p.established
 }

@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keniack/stardustGo/internal/links/linktypes"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
@@ -23,7 +22,6 @@ type GroundStation struct {
 	GroundSatelliteLinkProtocol types.GroundSatelliteLinkProtocol
 
 	Position types.Vector
-	Link     *linktypes.GroundLink
 	mu       sync.Mutex
 }
 
@@ -40,8 +38,9 @@ func NewGroundStation(name string, lat float64, lon float64, protocol types.Grou
 		SimulationStartTime:         simStart,
 		GroundSatelliteLinkProtocol: protocol,
 	}
-	gs.UpdatePositionFromElapsed(0)
 	protocol.Mount(gs)
+	router.Mount(gs)
+	gs.UpdatePositionFromElapsed(0)
 	return gs
 }
 
@@ -54,7 +53,7 @@ func (gs *GroundStation) PositionVector() types.Vector {
 }
 
 func (gs *GroundStation) DistanceTo(other types.Node) float64 {
-	return gs.Position.Sub(other.PositionVector()).Magnitude()
+	return gs.Position.Subtract(other.PositionVector()).Magnitude()
 }
 
 // UpdatePosition sets the current position of the ground station based on simulation time
@@ -64,7 +63,6 @@ func (gs *GroundStation) UpdatePosition(simTime time.Time) {
 
 	timeElapsed := simTime.Sub(gs.SimulationStartTime).Seconds()
 	gs.UpdatePositionFromElapsed(timeElapsed)
-	gs.GroundSatelliteLinkProtocol.UpdateLink()
 }
 
 // UpdatePositionFromElapsed calculates Earth-centered coordinates using geodetic formula
@@ -94,6 +92,10 @@ func (gs *GroundStation) UpdatePositionFromElapsed(timeElapsed float64) {
 	gs.Position = types.Vector{X: xRot, Y: yRot, Z: zRot}
 }
 
+func (gs *GroundStation) GetLinkNodeProtocol() types.LinkNodeProtocol {
+	return gs.GroundSatelliteLinkProtocol
+}
+
 // FindNearestSatellite returns the closest satellite in a given list
 func (gs *GroundStation) FindNearestSatellite(sats []*Satellite) (*Satellite, error) {
 	if len(sats) == 0 {
@@ -112,5 +114,13 @@ func (gs *GroundStation) FindNearestSatellite(sats []*Satellite) (*Satellite, er
 }
 
 func (gs *GroundStation) GetLinks() []types.Link {
-	return []types.Link{gs.GroundSatelliteLinkProtocol.Link()}
+	return gs.GroundSatelliteLinkProtocol.Links()
+}
+
+func (gs *GroundStation) GetEstablishedLinks() []types.Link {
+	return gs.GroundSatelliteLinkProtocol.Established()
+}
+
+func (gs *GroundStation) GetRouter() types.Router {
+	return gs.Router
 }

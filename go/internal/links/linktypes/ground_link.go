@@ -57,3 +57,7 @@ func (gl *GroundLink) GetOther(self types.Node) types.Node {
 func (gl *GroundLink) IsReachable() bool {
 	return true
 }
+
+func (gl *GroundLink) Nodes() (types.Node, types.Node) {
+	return gl.GroundStation, gl.Satellite
+}

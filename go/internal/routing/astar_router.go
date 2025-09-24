@@ -112,10 +112,7 @@ func (r *AStarRouter) RouteTo(target types.Node, payload types.Payload) (types.R
 			return NewOnRouteResult(int(gScore[current]), 0), nil
 		}
 
-		for _, l := range current.GetLinks() {
-			if !l.Established() {
-				continue
-			}
+		for _, l := range current.GetEstablishedLinks() {
 			neighbor := l.GetOther(current)
 			alt := gScore[current] + l.Latency()
 			if prev, ok := gScore[neighbor]; !ok || alt < prev {

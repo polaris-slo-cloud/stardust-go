@@ -1,10 +1,10 @@
 package links
 
 import (
+	"slices"
 	"sync"
 
 	"github.com/keniack/stardustGo/configs"
-	"github.com/keniack/stardustGo/internal/links/linktypes"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
@@ -73,69 +73,42 @@ func (p *IslAddLoopProtocol) UpdateLinks() ([]types.Link, error) {
 		return nil, err
 	}
 
-	var established []*linktypes.IslLink
-	for _, l := range innerEstablished {
-		if isl, ok := l.(*linktypes.IslLink); ok {
-			established = append(established, isl)
-		}
-	}
+	established := make([]types.Link, len(innerEstablished))
+	copy(established, innerEstablished)
 
 	// Only add an extra link if we're under the target neighbor count
 	if len(established) > 0 && len(established) < p.config.Neighbours-1 {
 		type candidate struct {
 			dist float64
-			link *linktypes.IslLink
+			link types.Link
 		}
 		var best *candidate
 
 		for _, l := range p.inner.Links() {
-			isl, ok := l.(*linktypes.IslLink)
-			if !ok || contains(established, isl) || isl.Distance() > configs.MaxISLDistance {
+			if slices.Contains(established, l) || l.Distance() > configs.MaxISLDistance {
 				continue
 			}
 
-			n1, ok1 := isl.Node1.(types.NodeWithISL)
-			n2, ok2 := isl.Node2.(types.NodeWithISL)
-			if !ok1 || !ok2 {
+			n1, n2 := l.Nodes()
+			if !shouldLoop(n1.GetLinkNodeProtocol().Established(), p.config.Neighbours) ||
+				!shouldLoop(n2.GetLinkNodeProtocol().Established(), p.config.Neighbours) {
 				continue
 			}
 
-			if !shouldLoop(n1.InterSatelliteLinkProtocol().Established(), p.config.Neighbours) ||
-				!shouldLoop(n2.InterSatelliteLinkProtocol().Established(), p.config.Neighbours) {
-				continue
-			}
-
-			if best == nil || isl.Distance() < best.dist {
-				best = &candidate{dist: isl.Distance(), link: isl}
+			if best == nil || l.Distance() < best.dist {
+				best = &candidate{dist: l.Distance(), link: l}
 			}
 		}
 
 		if best != nil {
-			n1 := best.link.Node1.(types.NodeWithISL)
-			n2 := best.link.Node2.(types.NodeWithISL)
-			_ = n1.InterSatelliteLinkProtocol().ConnectLink(best.link)
-			_ = n2.InterSatelliteLinkProtocol().ConnectLink(best.link)
-			best.link.SetEstablished(true)
+			n1, n2 := best.link.Nodes()
+			_ = n1.GetLinkNodeProtocol().ConnectLink(best.link)
+			_ = n2.GetLinkNodeProtocol().ConnectLink(best.link)
 			established = append(established, best.link)
 		}
 	}
 
-	// Return as []types.ILink
-	out := make([]types.Link, len(established))
-	for i, l := range established {
-		out[i] = l
-	}
-	return out, nil
-}
-
-// contains checks if a link is already in the list.
-func contains(list []*linktypes.IslLink, link *linktypes.IslLink) bool {
-	for _, l := range list {
-		if l == link {
-			return true
-		}
-	}
-	return false
+	return established, nil
 }
 
 // shouldLoop returns true if the node has fewer than the maximum allowed neighbors.

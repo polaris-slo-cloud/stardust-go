@@ -3,11 +3,12 @@ package ground
 import (
 	"log"
 
+	"github.com/keniack/stardustGo/internal/simulation"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
 type GroundStationLoaderService struct {
-	controller                types.SimulationController
+	controller                simulation.SimulationController
 	groundStationBuilder      *GroundStationBuilder
 	groundStationLoader       *GroundStationYmlLoader
 	groundStationDataSource   string
@@ -15,7 +16,7 @@ type GroundStationLoaderService struct {
 }
 
 func NewGroundStationLoaderService(
-	controller types.SimulationController,
+	controller simulation.SimulationController,
 	builder *GroundStationBuilder,
 	groundStationLoader *GroundStationYmlLoader,
 	dataSourcePath string,
@@ -32,7 +33,7 @@ func NewGroundStationLoaderService(
 
 func (s *GroundStationLoaderService) Start() error {
 	log.Println("Starting LoaderService...")
-	groundStations, err := s.groundStationLoader.Load(s.groundStationDataSource)
+	groundStations, err := s.groundStationLoader.Load(s.groundStationDataSource, s.controller.GetSatellites())
 	if err != nil {
 		return err
 	}
