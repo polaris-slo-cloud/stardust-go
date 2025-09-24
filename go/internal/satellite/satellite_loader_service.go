@@ -4,13 +4,12 @@ import (
 	"log"
 
 	"github.com/keniack/stardustGo/configs"
-	"github.com/keniack/stardustGo/internal/simulation"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // SatelliteLoaderService wires the constellation loader and triggers simulation startup.
 type SatelliteLoaderService struct {
-	controller            simulation.SimulationController
+	controller            types.SimulationController
 	constellationLoader   *SatelliteConstellationLoader
 	tleLoader             *TleLoader
 	satelliteBuilder      *SatelliteBuilder
@@ -24,7 +23,7 @@ func NewSatelliteLoaderService(
 	config configs.InterSatelliteLinkConfig,
 	builder *SatelliteBuilder,
 	loader *SatelliteConstellationLoader,
-	controller simulation.SimulationController,
+	controller types.SimulationController,
 	dataSourcePath string,
 	sourceFormat string,
 ) *SatelliteLoaderService {

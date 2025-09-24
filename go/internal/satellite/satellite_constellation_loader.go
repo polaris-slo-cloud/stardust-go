@@ -11,7 +11,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/keniack/stardustGo/internal/node"
+	"github.com/keniack/stardustGo/internal/links/linktypes"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 // SatelliteConstellationLoader manages data source loaders (e.g., TLE) and loads satellite data.
@@ -32,7 +33,7 @@ func (s *SatelliteConstellationLoader) RegisterDataSourceLoader(sourceType strin
 }
 
 // LoadSatelliteConstellation loads and parses satellites using a registered loader.
-func (s *SatelliteConstellationLoader) LoadSatelliteConstellation(dataSource string, sourceType string) ([]*node.Satellite, error) {
+func (s *SatelliteConstellationLoader) LoadSatelliteConstellation(dataSource string, sourceType string) ([]*types.Satellite, error) {
 	log.Printf("Loading satellite constellation from %s (%s)", dataSource, sourceType)
 
 	reader, err := openDataSource(dataSource)
@@ -56,10 +57,28 @@ func (s *SatelliteConstellationLoader) LoadSatelliteConstellation(dataSource str
 		if len(sat.ISLProtocol.Links()) != i {
 			log.Printf("Satellite %s has %d ISL links", sat.GetName(), len(sat.ISLProtocol.Links()))
 		}
-		sat.ConfigureConstellation(satellites[i+1:])
+
+		configureConstellation(sat, satellites[i+1:])
 	}
 	log.Printf("Loaded %d satellites", len(satellites))
 	return satellites, nil
+}
+
+// ConfigureConstellation configures a constellation of satellites by linking them.
+func configureConstellation(s *types.Satellite, satellites []*types.Satellite) {
+	for _, satellite := range satellites {
+		// Skip if it's the same satellite (this) or if there's already a link
+		if satellite == s { // Or add more conditions here if needed (e.g., checking existing links)
+			continue
+		}
+
+		// Create a new ISL link between the current satellite and the other one
+		link := linktypes.NewIslLink(s, satellite)
+
+		// Locking to ensure thread safety while modifying ISLProtocol
+		s.ISLProtocol.AddLink(link)         // Add link to this satellite's ISL protocol
+		satellite.ISLProtocol.AddLink(link) // Add link to the other satellite's ISL protocol
+	}
 }
 
 // openDataSource opens a local file or remote URL.
@@ -82,5 +101,5 @@ func openDataSource(dataSource string) (io.ReadCloser, error) {
 // SatelliteDataSourceLoader is implemented by TLELoader or other sources.
 // It parses satellite definitions from an input stream.
 type SatelliteDataSourceLoader interface {
-	Load(io.Reader) ([]*node.Satellite, error)
+	Load(io.Reader) ([]*types.Satellite, error)
 }

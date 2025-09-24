@@ -6,7 +6,7 @@ import (
 
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/links"
-	"github.com/keniack/stardustGo/internal/node"
+	"github.com/keniack/stardustGo/pkg/types"
 	"gopkg.in/yaml.v3"
 )
 
@@ -34,7 +34,7 @@ func NewGroundStationYmlLoader(
 	}
 }
 
-func (l *GroundStationYmlLoader) Load(path string, satellites []*node.Satellite) ([]*node.GroundStation, error) {
+func (l *GroundStationYmlLoader) Load(path string, satellites []*types.Satellite) ([]*types.GroundStation, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		log.Fatalf("Failed to open ground station file: %v", err)
@@ -49,7 +49,7 @@ func (l *GroundStationYmlLoader) Load(path string, satellites []*node.Satellite)
 		return nil, err
 	}
 
-	var result []*node.GroundStation
+	var result []*types.GroundStation
 	for _, gs := range groundStations {
 		station := l.groundStationBuilder.
 			SetName(gs.Name).

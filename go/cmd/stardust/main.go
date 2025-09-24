@@ -55,7 +55,7 @@ func main() {
 	constellationLoader.RegisterDataSourceLoader("tle", tleLoader)
 
 	// Step 5: Initialize simulation service
-	simService := simulation.NewSimulationService(cfg.Simulation, routerBuilder, computingBuilder)
+	simService := simulation.NewSimulationService(cfg.Simulation, routerBuilder, computingBuilder, plugins)
 
 	// Step 6: Inject orchestrator (if used)
 	orchestrator := deployment.NewDeploymentOrchestrator()

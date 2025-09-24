@@ -1,14 +1,11 @@
-package node
+package types
 
 import (
 	"math"
 	"time"
-
-	"github.com/keniack/stardustGo/internal/links/linktypes"
-	"github.com/keniack/stardustGo/pkg/types"
 )
 
-var _ types.Node = (*Satellite)(nil) // Ensure Satellite implements Node
+var _ Node = (*Satellite)(nil) // Ensure Satellite implements Node
 
 // Satellite represents a single satellite node in the simulation.
 type Satellite struct {
@@ -25,16 +22,16 @@ type Satellite struct {
 	MeanMotion           float64
 	SemiMajorAxis        float64
 	Epoch                time.Time
-	ISLProtocol          types.InterSatelliteLinkProtocol
-	GroundLinks          []types.Link
-	Position             types.Vector
+	ISLProtocol          InterSatelliteLinkProtocol
+	GroundLinks          []Link
+	Position             Vector
 }
 
 // NewSatellite initializes a new Satellite object with orbital configuration and ISL protocol.
-func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, meanMotion float64, epoch time.Time, simTime time.Time, isl types.InterSatelliteLinkProtocol, router types.Router, computing types.Computing) *Satellite {
-	inclRad := types.DegreesToRadians(inclination)
-	raanRad := types.DegreesToRadians(raan)
-	argPerigeeRad := types.DegreesToRadians(argPerigee)
+func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, meanMotion float64, epoch time.Time, simTime time.Time, isl InterSatelliteLinkProtocol, router Router, computing Computing) *Satellite {
+	inclRad := DegreesToRadians(inclination)
+	raanRad := DegreesToRadians(raan)
+	argPerigeeRad := DegreesToRadians(argPerigee)
 
 	s := &Satellite{
 		BaseNode:             BaseNode{Name: name, Router: router, Computing: computing}, // Embedding Node struct
@@ -49,7 +46,7 @@ func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, 
 		MeanMotion:           meanMotion,
 		Epoch:                epoch,
 		ISLProtocol:          isl,
-		GroundLinks:          []types.Link{},
+		GroundLinks:          []Link{},
 	}
 
 	isl.Mount(s)
@@ -66,23 +63,23 @@ func (s *Satellite) GetName() string {
 }
 
 // PositionVector returns the satellite's current position
-func (s *Satellite) PositionVector() types.Vector {
+func (s *Satellite) PositionVector() Vector {
 	return s.Position
 }
 
 // DistanceTo calculates the distance between this satellite and another node (satellite or ground station)
-func (s *Satellite) DistanceTo(other types.Node) float64 {
+func (s *Satellite) DistanceTo(other Node) float64 {
 	return s.Position.Subtract(other.PositionVector()).Magnitude()
 }
 
-func (s *Satellite) GetComputing() types.Computing {
+func (s *Satellite) GetComputing() Computing {
 	return s.Computing
 }
 
 // GetLinks returns all links connected to the satellite (both ISL and ground links)
-func (s *Satellite) GetLinks() []types.Link {
+func (s *Satellite) GetLinks() []Link {
 	// Combine inter-satellite links and ground links
-	var allLinks []types.Link
+	var allLinks []Link
 
 	// Add inter-satellite links (ISL links)
 	for _, link := range s.ISLProtocol.Links() {
@@ -97,8 +94,8 @@ func (s *Satellite) GetLinks() []types.Link {
 	return allLinks
 }
 
-func (s *Satellite) GetEstablishedLinks() []types.Link {
-	var establishedLinks []types.Link
+func (s *Satellite) GetEstablishedLinks() []Link {
+	var establishedLinks []Link
 	s.ISLProtocol.Established()
 	for _, link := range s.ISLProtocol.Established() {
 		establishedLinks = append(establishedLinks, link)
@@ -127,12 +124,12 @@ func (s *Satellite) UpdatePosition(simTime time.Time) {
 	s.Position = applyOrbitalTransformations(xp, yp, zp, s.InclinationRad, s.ArgumentOfPerigeeRad, s.RightAscensionRad)
 }
 
-func (s *Satellite) GetLinkNodeProtocol() types.LinkNodeProtocol {
+func (s *Satellite) GetLinkNodeProtocol() LinkNodeProtocol {
 	return s.ISLProtocol
 }
 
 // ApplyOrbitalTransformations converts orbital plane coordinates into the Earth-Centered Inertial (ECI) frame
-func applyOrbitalTransformations(x, y, z, iRad, omegaRad, raanRad float64) types.Vector {
+func applyOrbitalTransformations(x, y, z, iRad, omegaRad, raanRad float64) Vector {
 	cosRAAN := math.Cos(raanRad)
 	sinRAAN := math.Sin(raanRad)
 	cosIncl := math.Cos(iRad)
@@ -144,7 +141,7 @@ func applyOrbitalTransformations(x, y, z, iRad, omegaRad, raanRad float64) types
 	yECI := (sinRAAN*cosArgP+cosRAAN*sinArgP*cosIncl)*x + (-sinRAAN*sinArgP+cosRAAN*cosArgP*cosIncl)*y
 	zECI := sinIncl*sinArgP*x + sinIncl*cosArgP*y
 
-	return types.Vector{X: xECI, Y: yECI, Z: zECI}
+	return Vector{X: xECI, Y: yECI, Z: zECI}
 }
 
 // normalizeAngle wraps an angle in radians into the range [0, 2π].
@@ -176,23 +173,6 @@ func computeTrueAnomaly(E, ecc float64) float64 {
 	return math.Atan2(sqrt1me2*math.Sin(E), math.Cos(E)-ecc)
 }
 
-// ConfigureConstellation configures a constellation of satellites by linking them.
-func (s *Satellite) ConfigureConstellation(satellites []*Satellite) {
-	for _, satellite := range satellites {
-		// Skip if it's the same satellite (this) or if there's already a link
-		if satellite == s { // Or add more conditions here if needed (e.g., checking existing links)
-			continue
-		}
-
-		// Create a new ISL link between the current satellite and the other one
-		link := linktypes.NewIslLink(s, satellite)
-
-		// Locking to ensure thread safety while modifying ISLProtocol
-		s.ISLProtocol.AddLink(link)         // Add link to this satellite's ISL protocol
-		satellite.ISLProtocol.AddLink(link) // Add link to the other satellite's ISL protocol
-	}
-}
-
-func (s *Satellite) GetRouter() types.Router {
+func (s *Satellite) GetRouter() Router {
 	return s.Router
 }

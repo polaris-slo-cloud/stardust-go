@@ -2,13 +2,12 @@ package links
 
 import (
 	"github.com/keniack/stardustGo/configs"
-	"github.com/keniack/stardustGo/internal/node"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
 type GroundProtocolBuilder struct {
 	config     configs.GroundLinkConfig
-	satellites []*node.Satellite
+	satellites []*types.Satellite
 }
 
 func NewGroundProtocolBuilder(config configs.GroundLinkConfig) *GroundProtocolBuilder {
@@ -22,7 +21,7 @@ func (b *GroundProtocolBuilder) SetProtocol(protocol string) *GroundProtocolBuil
 	return b
 }
 
-func (b *GroundProtocolBuilder) SetSatellites(s []*node.Satellite) *GroundProtocolBuilder {
+func (b *GroundProtocolBuilder) SetSatellites(s []*types.Satellite) *GroundProtocolBuilder {
 	b.satellites = s
 	return b
 }
