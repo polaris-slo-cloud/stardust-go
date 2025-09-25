@@ -15,13 +15,13 @@ var _ types.GroundSatelliteLinkProtocol = (*GroundSatelliteNearestProtocol)(nil)
 // to the nearest satellite at any given time.
 type GroundSatelliteNearestProtocol struct {
 	link          *linktypes.GroundLink // Current active ground link
-	satellites    []*types.Satellite    // Available satellites
+	satellites    []types.Satellite     // Available satellites
 	groundStation types.Node            // The ground station node
 	mu            sync.Mutex
 }
 
 // NewGroundSatelliteNearestProtocol creates a new protocol with an initial list of satellites.
-func NewGroundSatelliteNearestProtocol(satellites []*types.Satellite) types.GroundSatelliteLinkProtocol {
+func NewGroundSatelliteNearestProtocol(satellites []types.Satellite) types.GroundSatelliteLinkProtocol {
 	return &GroundSatelliteNearestProtocol{
 		satellites: satellites,
 	}
@@ -71,7 +71,7 @@ func (p *GroundSatelliteNearestProtocol) UpdateLinks() ([]types.Link, error) {
 		return nil, errors.New("no satellites available")
 	}
 
-	slices.SortFunc(p.satellites, func(a *types.Satellite, b *types.Satellite) int {
+	slices.SortFunc(p.satellites, func(a types.Satellite, b types.Satellite) int {
 		var nodea types.Node = a
 		var nodeb types.Node = b
 		return int(p.groundStation.DistanceTo(nodea) - p.groundStation.DistanceTo(nodeb))
@@ -120,7 +120,7 @@ func (p *GroundSatelliteNearestProtocol) Link() types.Link {
 func (p *GroundSatelliteNearestProtocol) AddSatellite(sat types.Node) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if satellite, ok := sat.(*types.Satellite); ok {
+	if satellite, ok := sat.(types.Satellite); ok {
 		p.satellites = append(p.satellites, satellite)
 	}
 }
@@ -130,13 +130,12 @@ func (p *GroundSatelliteNearestProtocol) RemoveSatellite(toRemove types.Node) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if satellite, ok := toRemove.(*types.Satellite); ok {
+	if satellite, ok := toRemove.(types.Satellite); ok {
 
 		// Filter out the satellite
-		filtered := make([]*types.Satellite, 0, len(p.satellites))
+		filtered := make([]types.Satellite, 0, len(p.satellites))
 		for _, s := range p.satellites {
-			var sat = *s
-			if sat.GetName() != satellite.GetName() {
+			if s.GetName() != satellite.GetName() {
 				filtered = append(filtered, s)
 			}
 		}

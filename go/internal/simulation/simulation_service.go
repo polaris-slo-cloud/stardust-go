@@ -22,17 +22,18 @@ type SimulationService struct {
 	computingBuilder *computing.DefaultComputingBuilder
 
 	all             []types.Node
-	satellites      []*types.Satellite
-	groundNodes     []*types.GroundStation
+	satellites      []types.Satellite
+	groundNodes     []types.GroundStation
 	simplugins      []types.SimulationPlugin
 	statePluginRepo *types.StatePluginRepository
 	simTime         time.Time
 	maxCores        int
 	lock            sync.Mutex
 
-	autorun      bool
-	running      bool
-	orchestrator *deployment.DeploymentOrchestrator
+	autorun                   bool
+	running                   bool
+	orchestrator              *deployment.DeploymentOrchestrator
+	simulationStateSerializer *SimulationStateSerializer
 }
 
 // NewSimulationService initializes the simulation service
@@ -42,19 +43,27 @@ func NewSimulationService(
 	computing *computing.DefaultComputingBuilder,
 	plugins []types.SimulationPlugin,
 	statePluginRepo *types.StatePluginRepository,
+	simualtionStateOutputFile *string,
 ) *SimulationService {
-	return &SimulationService{
+	simService := &SimulationService{
 		config:           config,
 		routerBuilder:    router,
 		computingBuilder: computing,
 		all:              []types.Node{},
-		satellites:       []*types.Satellite{},
-		groundNodes:      []*types.GroundStation{},
+		satellites:       []types.Satellite{},
+		groundNodes:      []types.GroundStation{},
 		simTime:          config.SimulationStartTime,
 		maxCores:         config.MaxCpuCores,
 		simplugins:       plugins,
 		statePluginRepo:  statePluginRepo,
 	}
+
+	if *simualtionStateOutputFile != "" {
+		simService.simulationStateSerializer = NewSimulationStateSerializer(*simualtionStateOutputFile)
+		log.Printf("Simulation state will be serialized to %s", *simualtionStateOutputFile)
+	}
+
+	return simService
 }
 
 // Inject sets the orchestrator dependency
@@ -64,9 +73,9 @@ func (s *SimulationService) Inject(o *deployment.DeploymentOrchestrator) {
 
 // InjectSatellites adds the loaded satellites to the simulation scope
 func (s *SimulationService) InjectSatellites(satellites []types.Node) error {
-	s.satellites = make([]*types.Satellite, 0, len(satellites))
+	s.satellites = make([]types.Satellite, 0, len(satellites))
 	for _, n := range satellites {
-		sat, ok := n.(*types.Satellite)
+		sat, ok := n.(types.Satellite)
 		if !ok {
 			return fmt.Errorf("InjectSatellites: expected *node.Satellite but got %T", n)
 		}
@@ -80,9 +89,9 @@ func (s *SimulationService) InjectSatellites(satellites []types.Node) error {
 
 // InjectGroundStations adds the loaded ground stations to the simulation scope
 func (s *SimulationService) InjectGroundStations(groundStations []types.Node) error {
-	s.groundNodes = make([]*types.GroundStation, 0, len(groundStations))
+	s.groundNodes = make([]types.GroundStation, 0, len(groundStations))
 	for _, n := range groundStations {
-		gs, ok := n.(*types.GroundStation)
+		gs, ok := n.(types.GroundStation)
 		if !ok {
 			return fmt.Errorf("InjectGroundStations: expected *node.GroundStation but got %T", n)
 		}
@@ -212,6 +221,10 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 		}
 	}
 
+	if s.simulationStateSerializer != nil {
+		s.simulationStateSerializer.AddState(s)
+	}
+
 	time.Sleep(1 * time.Second) // Simulate step duration
 
 	s.running = false
@@ -221,11 +234,11 @@ func (s *SimulationService) GetAllNodes() []types.Node {
 	return s.all
 }
 
-func (s *SimulationService) GetSatellites() []*types.Satellite {
+func (s *SimulationService) GetSatellites() []types.Satellite {
 	return s.satellites
 }
 
-func (s *SimulationService) GetGroundStations() []*types.GroundStation {
+func (s *SimulationService) GetGroundStations() []types.GroundStation {
 	return s.groundNodes
 }
 
@@ -235,4 +248,10 @@ func (s *SimulationService) GetSimulationTime() time.Time {
 
 func (s *SimulationService) GetStatePluginRepository() *types.StatePluginRepository {
 	return s.statePluginRepo
+}
+
+func (s *SimulationService) Close() {
+	if s.simulationStateSerializer != nil {
+		s.simulationStateSerializer.Save()
+	}
 }

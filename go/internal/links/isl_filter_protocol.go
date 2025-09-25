@@ -39,7 +39,6 @@ func (p *IslFilterProtocol) Mount(s types.Node) {
 	}
 }
 
-// AddLink includes a link if relevant to the mounted node
 func (p *IslFilterProtocol) AddLink(link types.Link) {
 	if isl, ok := link.(*linktypes.IslLink); ok {
 		p.mu.Lock()

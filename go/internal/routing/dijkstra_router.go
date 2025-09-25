@@ -102,7 +102,7 @@ func (r *DijkstraRouter) CalculateRoutingTableAsync() error {
 	r.routes[r.node] = routeEntry{}
 
 	// Initialize priority queue with links
-	for _, l := range r.node.GetEstablishedLinks() {
+	for _, l := range r.node.GetLinkNodeProtocol().Established() {
 		// Only add established ISL links
 		queue = append(queue, dijkstraEntry{
 			Link:    l,
@@ -140,7 +140,7 @@ func (r *DijkstraRouter) CalculateRoutingTableAsync() error {
 		r.addServicesToRoutes(entry.Target, entry.Latency)
 
 		// Add the neighbors to the queue
-		for _, link := range entry.Target.GetEstablishedLinks() {
+		for _, link := range entry.Target.GetLinkNodeProtocol().Established() {
 			// Add the neighboring ISL link to the queue
 			neighbor := link.GetOther(entry.Target)
 			if !visited[neighbor] {
@@ -181,11 +181,11 @@ func (r *DijkstraRouter) addServicesToRoutes(target types.Node, latency float64)
 		// Check if the service already exists in the routing table
 		if _, exists := r.services[service.GetServiceName()]; !exists {
 			// Handle the case where there are no links available
-			if len(target.GetLinks()) > 0 {
+			if len(target.GetLinkNodeProtocol().Links()) > 0 {
 				// Use the first available link as the "via" link for simplicity
 				r.services[service.GetServiceName()] = routeEntry{
-					OutLink: target.GetLinks()[0],            // Using the first link as the "via"
-					Route:   NewPreRouteResult(int(latency)), // Creating PreRouteResult with latency
+					OutLink: target.GetLinkNodeProtocol().Links()[0], // Using the first link as the "via"
+					Route:   NewPreRouteResult(int(latency)),         // Creating PreRouteResult with latency
 				}
 			} else {
 				// If no links are available, we can set the route to unreachable or handle it differently

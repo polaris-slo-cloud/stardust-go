@@ -12,8 +12,9 @@ type SimulationController interface {
 	StepBySeconds(seconds float64)
 	StepByTime(newTime time.Time)
 	GetAllNodes() []Node
-	GetSatellites() []*Satellite
-	GetGroundStations() []*GroundStation
+	GetSatellites() []Satellite
+	GetGroundStations() []GroundStation
 	GetSimulationTime() time.Time
 	GetStatePluginRepository() *StatePluginRepository
+	Close()
 }

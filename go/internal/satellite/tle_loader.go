@@ -35,9 +35,9 @@ func NewTleLoader(config configs.InterSatelliteLinkConfig, builder *SatelliteBui
 }
 
 // Load parses the TLE stream into Satellite instances.
-func (l *TleLoader) Load(r io.Reader) ([]*types.Satellite, error) {
+func (l *TleLoader) Load(r io.Reader) ([]types.Satellite, error) {
 	scanner := bufio.NewScanner(r)
-	var satellites []*types.Satellite
+	var satellites []types.Satellite
 
 	for scanner.Scan() {
 		line1 := strings.TrimSpace(scanner.Text())
