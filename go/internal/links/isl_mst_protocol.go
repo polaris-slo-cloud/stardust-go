@@ -103,16 +103,18 @@ func (p *IslMstProtocol) UpdateLinks() ([]types.Link, error) {
 	p.resetEvent.Reset() // Mark as busy
 	p.mu.Unlock()
 
-	// Collect all satellites from links
-	satMap := map[string]types.Node{}
-	for l := range p.setLink {
-		satMap[l.Node1.GetName()] = l.Node1
-		satMap[l.Node2.GetName()] = l.Node2
-	}
-	p.satellites = make([]types.Node, 0, len(satMap))
-	for _, sat := range satMap {
-		p.satellites = append(p.satellites, sat)
-		p.representatives[sat.GetName()] = sat.GetName()
+	if p.satellites == nil {
+		// Collect all satellites from links
+		satMap := map[string]types.Node{}
+		for l := range p.setLink {
+			satMap[l.Node1.GetName()] = l.Node1
+			satMap[l.Node2.GetName()] = l.Node2
+		}
+		p.satellites = make([]types.Node, 0, len(satMap))
+		for _, sat := range satMap {
+			p.satellites = append(p.satellites, sat)
+			p.representatives[sat.GetName()] = sat.GetName()
+		}
 	}
 
 	// Build list of eligible links

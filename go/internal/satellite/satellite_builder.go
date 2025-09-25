@@ -107,6 +107,6 @@ func (b *SatelliteBuilder) Build() types.Satellite {
 		time.Now(), // Simulated current time, adjust if needed
 		b.islBuilder.Build(),
 		router, // Pass the router after error handling
-		b.computingBuilder.WithComputingType(configs.ComputingType(configs.Edge)).Build(),
+		b.computingBuilder.WithComputingType(types.ComputingType(types.Edge)).Build(),
 	)
 }

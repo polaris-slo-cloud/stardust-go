@@ -2,6 +2,7 @@ package simulation
 
 import (
 	"encoding/gob"
+	"log"
 	"os"
 
 	"github.com/keniack/stardustGo/pkg/types"
@@ -46,7 +47,27 @@ func (s *SimulationStateSerializer) AddState(simulationController types.Simulati
 	s.metadata.States = append(s.metadata.States, NewSimulationState(simulationController.GetSimulationTime(), nodeStates))
 }
 
-func (s *SimulationStateSerializer) Save() {
+func (s *SimulationStateSerializer) Save(simualtionController types.SimulationController) {
+
+	var satellites = simualtionController.GetSatellites()
+	s.metadata.Satellites = make([]RawSatellite, len(satellites))
+	for i, sat := range satellites {
+		s.metadata.Satellites[i] = RawSatellite{
+			Name:          sat.GetName(),
+			ComputingType: sat.GetComputing().GetComputingType(),
+		}
+	}
+
+	s.metadata.Grounds = make([]RawGroundStation, len(simualtionController.GetGroundStations()))
+	for i, gs := range simualtionController.GetGroundStations() {
+		s.metadata.Grounds[i] = RawGroundStation{
+			Name:          gs.GetName(),
+			ComputingType: gs.GetComputing().GetComputingType(),
+		}
+	}
+
+	log.Println(s.metadata)
+
 	file, _ := os.Create(s.outputFile)
 	defer file.Close()
 

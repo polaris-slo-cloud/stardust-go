@@ -29,12 +29,17 @@ func main() {
 		log.Fatal("--configFile missing")
 	}
 
-	var cfg *configs.Config
+	// Step 1: Load application configuration (from configs/appsettings.json)
+	cfg, err := configs.LoadConfigFromFile(*configFile)
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+
 	var simService types.SimulationController
 	if *simulationStateInputFile != "" {
-		cfg, simService = startSimulationIteration(*configFile, *simulationStateInputFile)
+		simService = startSimulationIteration(cfg, *simulationStateInputFile)
 	} else {
-		cfg, simService = startSimulation(*configFile, simulationStateOutputFile)
+		simService = startSimulation(cfg, simulationStateOutputFile)
 	}
 	defer simService.Close()
 
@@ -74,13 +79,7 @@ func main() {
 	}
 }
 
-func startSimulationIteration(configFile string, simulationStateInputFile string) (*configs.Config, types.SimulationController) {
-	// Step 1: Load application configuration (from configs/appsettings.json)
-	cfg, err := configs.LoadConfigFromFile(configFile)
-	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
-	}
-
+func startSimulationIteration(cfg *configs.Config, simulationStateInputFile string) types.SimulationController {
 	// Step 2: Build computing builder with configured strategies
 	var computingBuilder computing.ComputingBuilder = computing.NewComputingBuilder(cfg.Computing)
 
@@ -92,21 +91,17 @@ func startSimulationIteration(configFile string, simulationStateInputFile string
 	simPlugins, err := simPluginBuilder.BuildPlugins(cfg.Simulation.Plugins)
 	if err != nil {
 		log.Fatalf("Failed to build simualtion plugins: %v", err)
-		return nil, nil
+		return nil
 	}
 
-	// simStateDeserializer :=
-	simulation.NewSimulationStateDeserializer(simulationStateInputFile, computingBuilder, routerBuilder, simPlugins)
-	return nil, nil
+	// Step 6: Inject orchestrator (if used)
+	orchestrator := deployment.NewDeploymentOrchestrator()
+
+	simStateDeserializer := simulation.NewSimulationStateDeserializer(&cfg.Simulation, simulationStateInputFile, computingBuilder, routerBuilder, orchestrator, simPlugins)
+	return simStateDeserializer.LoadIterator()
 }
 
-func startSimulation(configFile string, simulationStateOutputFile *string) (*configs.Config, types.SimulationController) {
-	// Step 1: Load application configuration (from configs/appsettings.json)
-	cfg, err := configs.LoadConfigFromFile(configFile)
-	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
-	}
-
+func startSimulation(cfg *configs.Config, simulationStateOutputFile *string) types.SimulationController {
 	// Step 2: Build computing builder with configured strategies
 	computingBuilder := computing.NewComputingBuilder(cfg.Computing)
 
@@ -118,7 +113,7 @@ func startSimulation(configFile string, simulationStateOutputFile *string) (*con
 	simPlugins, err := simPluginBuilder.BuildPlugins(cfg.Simulation.Plugins)
 	if err != nil {
 		log.Fatalf("Failed to build simualtion plugins: %v", err)
-		return nil, nil
+		return nil
 	}
 
 	// Step 4.2: Initialize state plugin builder
@@ -126,7 +121,7 @@ func startSimulation(configFile string, simulationStateOutputFile *string) (*con
 	statePlugins, err := statePluginBuilder.BuildPlugins(cfg.Simulation.Plugins)
 	if err != nil {
 		log.Fatalf("Failed to build state plugins: %v", err)
-		return nil, nil
+		return nil
 	}
 
 	// Step 5.1: Initialize the satellite builder
@@ -142,7 +137,7 @@ func startSimulation(configFile string, simulationStateOutputFile *string) (*con
 	constellationLoader.RegisterDataSourceLoader("tle", tleLoader)
 
 	// Step 5: Initialize simulation service
-	simService := simulation.NewSimulationService(cfg.Simulation, routerBuilder, computingBuilder, simPlugins, types.NewStatePluginRepository(statePlugins), simulationStateOutputFile)
+	simService := simulation.NewSimulationService(&cfg.Simulation, routerBuilder, computingBuilder, simPlugins, types.NewStatePluginRepository(statePlugins), simulationStateOutputFile)
 
 	// Step 6: Inject orchestrator (if used)
 	orchestrator := deployment.NewDeploymentOrchestrator()
@@ -160,5 +155,5 @@ func startSimulation(configFile string, simulationStateOutputFile *string) (*con
 		log.Fatalf("Failed to load ground stations: %v", err)
 	}
 
-	return cfg, simService
+	return simService
 }

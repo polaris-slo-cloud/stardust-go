@@ -53,7 +53,7 @@ func (b *GroundStationBuilder) SetAltitude(value float64) *GroundStationBuilder 
 }
 
 func (b *GroundStationBuilder) SetComputingType(value string) *GroundStationBuilder {
-	ctype, _ := configs.ToComputingType(value)
+	ctype, _ := types.ToComputingType(value)
 	b.computingBuilder.WithComputingType(ctype)
 	return b
 }

@@ -37,11 +37,6 @@ func (gl *GroundLink) Bandwidth() float64 {
 	return 500_000_000 // 500 Mbps
 }
 
-// Established always returns true for ground links.
-func (gl *GroundLink) Established() bool {
-	return true
-}
-
 func (gl *GroundLink) GetOther(self types.Node) types.Node {
 	if self.GetName() == gl.Satellite.GetName() {
 		return gl.GroundStation

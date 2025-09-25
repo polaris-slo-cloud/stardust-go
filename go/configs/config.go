@@ -3,12 +3,11 @@ package configs
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
+	"github.com/keniack/stardustGo/pkg/types"
 	"gopkg.in/yaml.v3"
 )
 
@@ -47,74 +46,9 @@ type RouterConfig struct {
 }
 
 type ComputingConfig struct {
-	Cores  int           `json:"Cores" yaml:"Cores"`
-	Memory int           `json:"Memory" yaml:"Memory"`
-	Type   ComputingType `json:"Type" yaml:"Type"` // Should be either "Edge" or "Cloud"
-}
-
-type ComputingType int
-
-const (
-	// None represents an undefined computing type.
-	None ComputingType = iota
-	// Edge represents edge computing resources.
-	Edge
-	// Cloud represents cloud computing resources.
-	Cloud
-	// Any represents any available computing type.
-	Any
-)
-
-// String converts the ComputingType to a string representation.
-func (c ComputingType) String() string {
-	return [...]string{"None", "Edge", "Cloud", "Any"}[c]
-}
-
-func ToComputingType(s string) (ComputingType, error) {
-	switch strings.ToLower(s) {
-	case "none":
-		return None, nil
-	case "edge":
-		return Edge, nil
-	case "cloud":
-		return Cloud, nil
-	case "any":
-		return Any, nil
-	default:
-		return None, fmt.Errorf("unknown ComputingType: %s", s)
-	}
-}
-
-// UnmarshalJSON allows ComputingType to be parsed from JSON as a string.
-func (c *ComputingType) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return err
-	}
-
-	ct, err := ToComputingType(s)
-	if err != nil {
-		return err
-	}
-
-	*c = ct
-	return nil
-}
-
-// UnmarshalYAML allows ComputingType to be parsed from YAML as a string.
-func (c *ComputingType) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var s string
-	if err := unmarshal(&s); err != nil {
-		return err
-	}
-
-	ct, err := ToComputingType(s)
-	if err != nil {
-		return err
-	}
-
-	*c = ct
-	return nil
+	Cores  int                 `json:"Cores" yaml:"Cores"`
+	Memory int                 `json:"Memory" yaml:"Memory"`
+	Type   types.ComputingType `json:"Type" yaml:"Type"` // Should be either "Edge" or "Cloud"
 }
 
 func LoadConfigFromFile(path string) (*Config, error) {

@@ -2,6 +2,7 @@ package computing
 
 import (
 	"github.com/keniack/stardustGo/configs"
+	"github.com/keniack/stardustGo/pkg/types"
 )
 
 var _ ComputingBuilder = (*DefaultComputingBuilder)(nil)
@@ -9,7 +10,7 @@ var _ ComputingBuilder = (*DefaultComputingBuilder)(nil)
 // ComputingBuilder is the interface for building Computing instances.
 type ComputingBuilder interface {
 	// WithComputingType sets the computing type for the builder.
-	WithComputingType(computingType configs.ComputingType) ComputingBuilder
+	WithComputingType(computingType types.ComputingType) ComputingBuilder
 
 	// Build creates and returns the final Computing instance.
 	Build() *Computing // Return a pointer to Computing
@@ -30,7 +31,7 @@ func NewComputingBuilder(computingConfiguration []configs.ComputingConfig) *Defa
 }
 
 // WithComputingType configures the Computing instance with a specific ComputingType.
-func (b *DefaultComputingBuilder) WithComputingType(computingType configs.ComputingType) ComputingBuilder {
+func (b *DefaultComputingBuilder) WithComputingType(computingType types.ComputingType) ComputingBuilder {
 	if b.currentConfiguration.Type == computingType {
 		return b
 	}

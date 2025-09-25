@@ -3,7 +3,6 @@ package node
 import (
 	"time"
 
-	"github.com/keniack/stardustGo/internal/links"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
@@ -15,7 +14,7 @@ type SimulatedSatellite struct {
 	ISLProtocol types.InterSatelliteLinkProtocol
 }
 
-func NewSimulatedSatellite(name string, router types.Router, computing types.Computing, isl *links.SimulatedLinkProtocol) *SimulatedSatellite {
+func NewSimulatedSatellite(name string, router types.Router, computing types.Computing, isl types.InterSatelliteLinkProtocol) *SimulatedSatellite {
 	return &SimulatedSatellite{
 
 		BaseNode:    BaseNode{Name: name, Router: router, Computing: computing},

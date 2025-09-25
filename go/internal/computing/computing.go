@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
@@ -13,7 +12,7 @@ import (
 type Computing struct {
 	Cpu         float64                   // Total CPU available
 	Memory      float64                   // Total memory available
-	Type        configs.ComputingType     // Type of the computing unit
+	Type        types.ComputingType       // Type of the computing unit
 	CpuUsage    float64                   // Current CPU usage
 	MemoryUsage float64                   // Current memory usage
 	Services    []types.DeployableService // List of deployed services (using IDeployedService)
@@ -26,7 +25,7 @@ func (c *Computing) GetServices() []types.DeployableService {
 }
 
 // NewComputing creates a new Computing instance with the provided CPU, memory, and type.
-func NewComputing(cpu, memory float64, ctype configs.ComputingType) *Computing {
+func NewComputing(cpu, memory float64, ctype types.ComputingType) *Computing {
 	return &Computing{
 		Cpu:      cpu,
 		Memory:   memory,
@@ -144,4 +143,8 @@ func (c *Computing) Clone() types.Computing {
 		MemoryUsage: c.MemoryUsage,
 		Services:    servicesClone,
 	}
+}
+
+func (c *Computing) GetComputingType() types.ComputingType {
+	return c.Type
 }

@@ -139,10 +139,7 @@ func (r *AStarRouter) getNeighbourhood() []types.Node {
 		}
 		visited[n] = true
 		result = append(result, n)
-		for _, l := range n.GetLinkNodeProtocol().Links() {
-			if !l.Established() {
-				continue
-			}
+		for _, l := range n.GetLinkNodeProtocol().Established() {
 			other := l.GetOther(n)
 			if !visited[other] {
 				queue = append(queue, other)

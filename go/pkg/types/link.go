@@ -11,9 +11,6 @@ type Link interface {
 	// Bandwidth returns the bandwidth in bits per second.
 	Bandwidth() float64
 
-	// Established returns whether the link is currently active.
-	Established() bool
-
 	// GetOther returns the opposite node from the provided one.
 	GetOther(self Node) Node
 

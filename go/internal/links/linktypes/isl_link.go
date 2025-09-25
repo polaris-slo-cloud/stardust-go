@@ -62,10 +62,6 @@ func (l *IslLink) Involves(node types.Node) bool {
 	return l.Node1.GetName() == node.GetName() || l.Node2.GetName() == node.GetName()
 }
 
-func (l *IslLink) Established() bool {
-	return l.isEstablished
-}
-
 func (l *IslLink) SetEstablished(val bool) {
 	l.isEstablished = val
 }

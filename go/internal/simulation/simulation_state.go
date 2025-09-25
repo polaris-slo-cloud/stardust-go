@@ -3,7 +3,6 @@ package simulation
 import (
 	"time"
 
-	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
@@ -20,8 +19,8 @@ type SimulationMetadata struct {
 }
 
 type SimulationState struct {
-	Time  time.Time
-	Nodes []NodeState
+	Time       time.Time
+	NodeStates []NodeState
 }
 
 type NodeState struct {
@@ -32,12 +31,12 @@ type NodeState struct {
 
 type RawSatellite struct {
 	Name          string
-	ComputingType configs.ComputingType
+	ComputingType types.ComputingType
 }
 
 type RawGroundStation struct {
 	Name          string
-	ComputingType configs.ComputingType
+	ComputingType types.ComputingType
 }
 
 func NewSimulationMetadata() SimulationMetadata {
@@ -49,8 +48,8 @@ func NewSimulationMetadata() SimulationMetadata {
 
 func NewSimulationState(time time.Time, nodes []NodeState) SimulationState {
 	return SimulationState{
-		Time:  time,
-		Nodes: nodes,
+		Time:       time,
+		NodeStates: nodes,
 	}
 }
 

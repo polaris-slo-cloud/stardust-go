@@ -1,64 +1,78 @@
 package links
 
-import "github.com/keniack/stardustGo/pkg/types"
+import (
+	"sync"
+
+	"github.com/keniack/stardustGo/pkg/types"
+)
 
 var _ types.InterSatelliteLinkProtocol = (*SimulatedLinkProtocol)(nil)
 
 type SimulatedLinkProtocol struct {
+	node        types.Node
+	links       []types.Link
+	established [][]types.Link
+	currentIx   int
+
+	position types.Vector
+	mu       sync.Mutex
 }
 
 func NewSimulatedLinkProtocol() *SimulatedLinkProtocol {
-	return &SimulatedLinkProtocol{}
+	return &SimulatedLinkProtocol{
+		links:     []types.Link{},
+		currentIx: 0,
+	}
 }
 
-// Mount attaches the protocol to a node.
+func (p *SimulatedLinkProtocol) InjectEstablishedLinks(links [][]types.Link) {
+	p.established = links
+}
+
 func (p *SimulatedLinkProtocol) Mount(s types.Node) {
-	// Base implementation: do nothing.
+	if p.node == nil {
+		p.node = s
+	}
 }
 
-// ConnectLink establishes a connection for the given link.
 func (p *SimulatedLinkProtocol) ConnectLink(link types.Link) error {
-	// Base implementation: return nil (success).
 	return nil
 }
 
-// DisconnectLink disconnects the given link.
 func (p *SimulatedLinkProtocol) DisconnectLink(link types.Link) error {
-	// Base implementation: return nil (success).
 	return nil
 }
 
 // UpdateLinks updates the list of active links.
 func (p *SimulatedLinkProtocol) UpdateLinks() ([]types.Link, error) {
-	// Base implementation: return empty slice and nil error.
-	return []types.Link{}, nil
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.position == p.node.PositionVector() {
+		return p.established[p.currentIx], nil
+	}
+
+	p.position = p.node.PositionVector()
+	p.currentIx++
+	return p.established[p.currentIx], nil
 }
 
 // Established returns the list of established links.
 func (p *SimulatedLinkProtocol) Established() []types.Link {
-	// Base implementation: return empty slice.
-	return []types.Link{}
+	return p.established[p.currentIx]
 }
 
-// Links returns all links managed by this protocol.
 func (p *SimulatedLinkProtocol) Links() []types.Link {
-	// Base implementation: return empty slice.
-	return []types.Link{}
+	return p.links
 }
 
-// ConnectSatellite establishes a connection to a satellite node.
 func (p *SimulatedLinkProtocol) ConnectSatellite(s types.Node) error {
-	// Base implementation: return nil (success).
 	return nil
 }
 
-// DisconnectSatellite disconnects from a satellite node.
 func (p *SimulatedLinkProtocol) DisconnectSatellite(s types.Node) error {
-	// Base implementation: return nil (success).
 	return nil
 }
 
-// AddLink adds a new link to the protocol.
 func (p *SimulatedLinkProtocol) AddLink(link types.Link) {
-	// Base implementation: do nothing.
+	p.links = append(p.links, link)
 }
