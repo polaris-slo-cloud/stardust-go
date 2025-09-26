@@ -15,15 +15,17 @@ type SimulationIteratorService struct {
 	BaseSimulationService
 
 	simulationStates []SimulationState
+	simPlugins       []types.SimulationPlugin
 	running          bool
 	currentIx        int
 }
 
-func NewSimulationIteratorService(config *configs.SimulationConfig, simulationStates []SimulationState) *SimulationIteratorService {
+func NewSimulationIteratorService(config *configs.SimulationConfig, simulationStates []SimulationState, simPlugins []types.SimulationPlugin) *SimulationIteratorService {
 	service := &SimulationIteratorService{
 		simulationStates: simulationStates,
+		simPlugins:       simPlugins,
 		running:          false,
-		currentIx:        0,
+		currentIx:        -1,
 	}
 	service.BaseSimulationService = NewBaseSimulationService(config, service.runSimulationStep)
 	return service
@@ -49,6 +51,7 @@ func (s *SimulationIteratorService) runSimulationStep(nextTime func(time.Time) t
 	s.running = true
 	s.lock.Unlock()
 
+	s.currentIx++
 	s.setSimulationTime(s.simulationStates[s.currentIx].Time)
 	log.Printf("Simulation time is %s", s.simTime.Format(time.RFC3339))
 
@@ -66,7 +69,7 @@ func (s *SimulationIteratorService) runSimulationStep(nextTime func(time.Time) t
 	// Link updates (ISL and ground links)
 	for _, node := range s.all {
 		wg.Add(1)
-		func(n types.Node) {
+		go func(n types.Node) {
 			defer wg.Done()
 			node.GetLinkNodeProtocol().UpdateLinks()
 		}(node)
@@ -96,12 +99,12 @@ func (s *SimulationIteratorService) runSimulationStep(nextTime func(time.Time) t
 	// 	plugin.PostSimulationStep(s)
 	// }
 
-	// // Execute post-step simulation plugins
-	// for _, plugin := range s.simplugins {
-	// 	if err := plugin.PostSimulationStep(s); err != nil {
-	// 		log.Printf("Plugin %s PostSimulationStep error: %v", plugin.Name(), err)
-	// 	}
-	// }
+	// Execute post-step simulation plugins
+	for _, plugin := range s.simPlugins {
+		if err := plugin.PostSimulationStep(s); err != nil {
+			log.Printf("Plugin %s PostSimulationStep error: %v", plugin.Name(), err)
+		}
+	}
 
 	time.Sleep(1 * time.Second) // Simulate step duration
 

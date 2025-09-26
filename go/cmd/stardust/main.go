@@ -49,8 +49,8 @@ func main() {
 		<-done // blocks main goroutine until simulation stops
 	} else {
 		log.Println("Simulation loaded. Not autorunning as StepInterval < 0.")
-		for range 10 {
-			simService.StepBySeconds(60) // Example: step by 60 seconds
+		for range 2 {
+			simService.StepBySeconds(60 * 10) // Example: step by 60 seconds
 			var sats = simService.GetGroundStations()
 			var ground1 = sats[0]
 			var ground2 = sats[80]
@@ -69,6 +69,7 @@ func main() {
 				log.Println("Latency between uplink nodes:", x.Latency(), "ms")
 				log.Println(uplinkSat1.GetName(), "->", l2.GetOther(ground2).GetName())
 				log.Println(uplinkSat1.DistanceTo(uplinkSat2)/1000, "km apart")
+				log.Println(uplinkSat1.PositionVector(), uplinkSat2.PositionVector())
 			}
 			log.Println(len(sats), "satellites in simulation.")
 			log.Println("Simulation stepped by 60 seconds.")

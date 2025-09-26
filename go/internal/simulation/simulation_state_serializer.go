@@ -8,32 +8,42 @@ import (
 )
 
 type SimulationStateSerializer struct {
-	outputFile string
-	metadata   SimulationMetadata
-	linksIxMap map[types.Link]int
+	outputFile    string
+	metadata      SimulationMetadata
+	linksIxMap    map[types.Link]int
+	nodeNodeIxMap map[types.Node]map[types.Node]int
 }
 
 func NewSimulationStateSerializer(outputFile string) *SimulationStateSerializer {
 	return &SimulationStateSerializer{
-		outputFile: outputFile,
-		metadata:   NewSimulationMetadata(),
-		linksIxMap: make(map[types.Link]int),
+		outputFile:    outputFile,
+		metadata:      NewSimulationMetadata(),
+		linksIxMap:    make(map[types.Link]int),
+		nodeNodeIxMap: make(map[types.Node]map[types.Node]int),
 	}
 }
 
 func (s *SimulationStateSerializer) AddState(simulationController types.SimulationController) {
 	var nodes = simulationController.GetAllNodes()
+	if len(s.metadata.States) == 0 {
+		for _, node := range nodes {
+			s.nodeNodeIxMap[node] = make(map[types.Node]int)
+		}
+	}
+
 	var nodeStates = []NodeState{}
 	for _, node := range nodes {
 		linkIxs := []int{}
 		for _, link := range node.GetLinkNodeProtocol().Established() {
 			var linkIx int
-			if ix, exists := s.linksIxMap[link]; exists {
+			nn, nm := link.Nodes()
+			if ix, exists := s.nodeNodeIxMap[nn][nm]; exists {
 				linkIx = ix
 			} else {
 				n1, n2 := link.Nodes()
 				linkIx = len(s.metadata.Links)
 				s.linksIxMap[link] = linkIx
+				s.nodeNodeIxMap[n1][n2] = linkIx
 				s.metadata.Links = append(s.metadata.Links, SimulationLink{
 					NodeName1: n1.GetName(),
 					NodeName2: n2.GetName(),

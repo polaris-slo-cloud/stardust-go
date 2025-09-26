@@ -125,7 +125,7 @@ func (d *SimulationStateDeserializer) LoadIterator() types.SimulationController 
 		}
 	}
 
-	simService := NewSimulationIteratorService(d.config, metadata.States)
+	simService := NewSimulationIteratorService(d.config, metadata.States, d.simPlugins)
 	simService.Inject(d.orchestrator)
 	simService.InjectSatellites(satellites)
 	simService.InjectGroundStations(groundStations)

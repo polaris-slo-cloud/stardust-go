@@ -53,8 +53,19 @@ func (p *IslNearestProtocol) ConnectLink(link types.Link) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.incoming[link] = true
-	p.established = append(p.established, link)
+	if !contains(p.established, link) {
+		p.established = append(p.established, link)
+	}
 	return nil
+}
+
+func contains(list []types.Link, link types.Link) bool {
+	for _, l := range list {
+		if l == link {
+			return true
+		}
+	}
+	return false
 }
 
 // DisconnectLink removes the incoming status if it's not also an outgoing link.
