@@ -49,7 +49,7 @@ func main() {
 		<-done // blocks main goroutine until simulation stops
 	} else {
 		log.Println("Simulation loaded. Not autorunning as StepInterval < 0.")
-		for range 1 {
+		for range 10 {
 			simService.StepBySeconds(60) // Example: step by 60 seconds
 			var sats = simService.GetGroundStations()
 			var ground1 = sats[0]
@@ -63,18 +63,18 @@ func main() {
 			if err != nil {
 				log.Println("Routing error:", err)
 			} else {
+				log.Println(ground1.DistanceTo(ground2)/1000, "km apart")
 				log.Println("Route from", ground1.GetName(), "to", ground2.GetName(), "in", route.Latency(), "ms")
+				log.Println("Uplink latency", l1.Latency()+l2.Latency(), "ms")
 				log.Println("Latency between uplink nodes:", x.Latency(), "ms")
 				log.Println(uplinkSat1.GetName(), "->", l2.GetOther(ground2).GetName())
-				log.Println(ground1.DistanceTo(ground2)/1000, "km apart")
-				log.Println(l1.Distance(), "km apart", ground2.DistanceTo(uplinkSat1))
-				log.Println(l2.Distance(), "km apart", ground1.DistanceTo(uplinkSat2))
+				log.Println(uplinkSat1.DistanceTo(uplinkSat2)/1000, "km apart")
 			}
 			log.Println(len(sats), "satellites in simulation.")
 			log.Println("Simulation stepped by 60 seconds.")
 
-			var statePlugin = types.GetStatePlugin[*stateplugin.DummySunStatePlugin](simService.GetStatePluginRepository())
-			log.Println("Sunlight exposure of", uplinkSat1.GetName(), "is", statePlugin.GetSunlightExposure(uplinkSat1))
+			// var statePlugin = types.GetStatePlugin[*stateplugin.DummySunStatePlugin](simService.GetStatePluginRepository())
+			// log.Println("Sunlight exposure of", uplinkSat1.GetName(), "is", statePlugin.GetSunlightExposure(uplinkSat1))
 		}
 	}
 }

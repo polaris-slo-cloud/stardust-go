@@ -17,7 +17,7 @@ type Computing struct {
 	MemoryUsage float64                   // Current memory usage
 	Services    []types.DeployableService // List of deployed services (using IDeployedService)
 	mu          sync.Mutex                // Mutex to ensure thread safety
-	node        *types.Node               // Node to which this computing is mounted
+	node        types.Node                // Node to which this computing is mounted
 }
 
 func (c *Computing) GetServices() []types.DeployableService {
@@ -35,7 +35,7 @@ func NewComputing(cpu, memory float64, ctype types.ComputingType) *Computing {
 }
 
 // Mount attaches this computing unit to a node
-func (c *Computing) Mount(node *types.Node) error {
+func (c *Computing) Mount(node types.Node) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

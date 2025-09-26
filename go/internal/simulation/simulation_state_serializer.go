@@ -2,7 +2,6 @@ package simulation
 
 import (
 	"encoding/gob"
-	"log"
 	"os"
 
 	"github.com/keniack/stardustGo/pkg/types"
@@ -65,8 +64,6 @@ func (s *SimulationStateSerializer) Save(simualtionController types.SimulationCo
 			ComputingType: gs.GetComputing().GetComputingType(),
 		}
 	}
-
-	log.Println(s.metadata)
 
 	file, _ := os.Create(s.outputFile)
 	defer file.Close()

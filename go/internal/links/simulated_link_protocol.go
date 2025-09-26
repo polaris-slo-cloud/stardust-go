@@ -21,7 +21,8 @@ type SimulatedLinkProtocol struct {
 func NewSimulatedLinkProtocol() *SimulatedLinkProtocol {
 	return &SimulatedLinkProtocol{
 		links:     []types.Link{},
-		currentIx: 0,
+		currentIx: -1,
+		position:  types.NewVector(-1, -1, -1),
 	}
 }
 
@@ -51,8 +52,8 @@ func (p *SimulatedLinkProtocol) UpdateLinks() ([]types.Link, error) {
 		return p.established[p.currentIx], nil
 	}
 
-	p.position = p.node.PositionVector()
 	p.currentIx++
+	p.position = p.node.PositionVector()
 	return p.established[p.currentIx], nil
 }
 

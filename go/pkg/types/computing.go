@@ -9,7 +9,7 @@ import (
 // Computing is an interface for computing resources, including managing services, available resources, and service placement.
 type Computing interface {
 	// Mount attaches the computing unit to a node
-	Mount(node *Node) error
+	Mount(node Node) error
 
 	// GetComputingType return the type of computing resource
 	GetComputingType() ComputingType

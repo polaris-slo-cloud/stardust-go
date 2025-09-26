@@ -1,7 +1,7 @@
 SimulationConfiguration:
   StepInterval: -1
   StepMultiplier: 10
-  SatelliteDataSource: starlink_500.tle
+  SatelliteDataSource: starlink_newest.tle
   SatelliteDataSourceType: tle
   GroundStationDataSource: ground_stations.yml
   GroundStationDataSourceType: yml

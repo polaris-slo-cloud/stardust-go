@@ -29,23 +29,23 @@ func NewIslProtocolBuilder(cfg configs.InterSatelliteLinkConfig) *IslProtocolBui
 func (b *IslProtocolBuilder) Build() types.InterSatelliteLinkProtocol {
 	switch b.config.Protocol {
 	case "mst":
-		return NewIslFilterProtocol(b.getMst())
+		return NewLinkFilterProtocol(b.getMst())
 	case "pst":
-		return NewIslFilterProtocol(b.getPst())
+		return NewLinkFilterProtocol(b.getPst())
 	case "mst_loop":
-		return NewIslAddLoopProtocol(NewIslFilterProtocol(b.getMst()), b.config)
+		return NewIslAddLoopProtocol(NewLinkFilterProtocol(b.getMst()), b.config)
 	case "pst_loop":
-		return NewIslAddLoopProtocol(NewIslFilterProtocol(b.getPst()), b.config)
+		return NewIslAddLoopProtocol(NewLinkFilterProtocol(b.getPst()), b.config)
 	case "mst_smart_loop":
-		return NewIslFilterProtocol(b.getMstAddSmartLoop())
+		return NewLinkFilterProtocol(b.getMstAddSmartLoop())
 	case "pst_smart_loop":
-		return NewIslFilterProtocol(b.getPstAddSmartLoop())
+		return NewLinkFilterProtocol(b.getPstAddSmartLoop())
 	case "other_mst":
-		return NewIslFilterProtocol(b.getOtherMst())
+		return NewLinkFilterProtocol(b.getOtherMst())
 	case "other_mst_loop":
-		return NewIslAddLoopProtocol(NewIslFilterProtocol(b.getOtherMst()), b.config)
+		return NewIslAddLoopProtocol(NewLinkFilterProtocol(b.getOtherMst()), b.config)
 	case "other_mst_smart_loop":
-		return NewIslFilterProtocol(NewIslAddSmartLoopProtocol(b.getOtherMst(), b.config))
+		return NewLinkFilterProtocol(NewIslAddSmartLoopProtocol(b.getOtherMst(), b.config))
 	case "nearest":
 		return NewIslNearestProtocol(b.config)
 	default:

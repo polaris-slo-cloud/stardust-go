@@ -77,7 +77,7 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 	s.running = true
 	s.lock.Unlock()
 
-	s.simTime = nextTime(s.simTime)
+	s.setSimulationTime(nextTime(s.GetSimulationTime()))
 	log.Printf("Simulation time is %s", s.simTime.Format(time.RFC3339))
 
 	// Update positions of all nodes (satellites and ground stations)
@@ -94,7 +94,7 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 	// Link updates (ISL and ground links)
 	for _, node := range s.all {
 		wg.Add(1)
-		func(n types.Node) {
+		go func(n types.Node) {
 			defer wg.Done()
 			node.GetLinkNodeProtocol().UpdateLinks()
 		}(node)

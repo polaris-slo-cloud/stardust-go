@@ -21,8 +21,7 @@ type GroundStationStruct struct {
 	SimulationStartTime         time.Time
 	GroundSatelliteLinkProtocol types.GroundSatelliteLinkProtocol
 
-	Position types.Vector
-	mu       sync.Mutex
+	mu sync.Mutex
 }
 
 // NewGroundStation creates and initializes a new ground station with link protocol and position
@@ -40,16 +39,8 @@ func NewGroundStation(name string, lat float64, lon float64, protocol types.Grou
 	}
 	protocol.Mount(gs)
 	router.Mount(gs)
-	gs.UpdatePositionFromElapsed(0)
+	gs.updatePositionFromElapsed(0)
 	return gs
-}
-
-func (gs *GroundStationStruct) GetName() string {
-	return gs.Name
-}
-
-func (gs *GroundStationStruct) PositionVector() types.Vector {
-	return gs.Position
 }
 
 // UpdatePosition sets the current position of the ground station based on simulation time
@@ -58,11 +49,11 @@ func (gs *GroundStationStruct) UpdatePosition(simTime time.Time) {
 	defer gs.mu.Unlock()
 
 	timeElapsed := simTime.Sub(gs.SimulationStartTime).Seconds()
-	gs.UpdatePositionFromElapsed(timeElapsed)
+	gs.updatePositionFromElapsed(timeElapsed)
 }
 
-// UpdatePositionFromElapsed calculates Earth-centered coordinates using geodetic formula
-func (gs *GroundStationStruct) UpdatePositionFromElapsed(timeElapsed float64) {
+// updatePositionFromElapsed calculates Earth-centered coordinates using geodetic formula
+func (gs *GroundStationStruct) updatePositionFromElapsed(timeElapsed float64) {
 	const (
 		a             = 6378137.0       // semi-major axis in meters
 		b             = 6356752.314245  // semi-minor axis in meters
@@ -107,16 +98,4 @@ func (gs *GroundStationStruct) FindNearestSatellite(sats []types.Satellite) (typ
 		}
 	}
 	return nearest, nil
-}
-
-func (gs *GroundStationStruct) GetLinks() []types.Link {
-	return gs.GroundSatelliteLinkProtocol.Links()
-}
-
-func (gs *GroundStationStruct) GetEstablishedLinks() []types.Link {
-	return gs.GroundSatelliteLinkProtocol.Established()
-}
-
-func (gs *GroundStationStruct) GetRouter() types.Router {
-	return gs.Router
 }

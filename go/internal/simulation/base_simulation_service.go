@@ -143,3 +143,7 @@ func (s *BaseSimulationService) StepByTime(newTime time.Time) {
 		return newTime
 	})
 }
+
+func (s *BaseSimulationService) setSimulationTime(time time.Time) {
+	s.simTime = time
+}

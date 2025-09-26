@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"log"
 	"os"
+	"time"
 
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/computing"
@@ -63,34 +64,42 @@ func (d *SimulationStateDeserializer) LoadIterator() types.SimulationController 
 	innerProtocol := links.NewSimulatedLinkProtocol()
 
 	// Reconstruct nodes
-	nodeNames := make(map[string]types.Node)
+	nodeNames := make(map[string]node.SimulatedNode)
 	satellites := make([]types.Node, len(metadata.Satellites))
 	for i, sat := range metadata.Satellites {
 		router, _ := d.routerBuilder.Build()
 		computing := d.computingBuilder.Build()
-		satellites[i] = node.NewSimulatedSatellite(sat.Name, router, computing, links.NewIslFilterProtocol(innerProtocol))
-		nodeNames[sat.Name] = satellites[i]
+		satellite := node.NewSimulatedSatellite(sat.Name, router, computing, links.NewLinkFilterProtocol(innerProtocol))
+		satellites[i] = satellite
+		nodeNames[sat.Name] = satellite
 	}
 
 	groundStations := make([]types.Node, len(metadata.Grounds))
 	for i, gs := range metadata.Grounds {
 		router, _ := d.routerBuilder.Build()
 		computing := d.computingBuilder.Build()
-		groundStations[i] = node.NewSimulatedGroundStation(gs.Name, router, computing, links.NewIslFilterProtocol(innerProtocol))
-		nodeNames[gs.Name] = groundStations[i]
+		groundStation := node.NewSimulatedGroundStation(gs.Name, router, computing, links.NewLinkFilterProtocol(innerProtocol))
+		groundStations[i] = groundStation
+		nodeNames[gs.Name] = groundStation
 	}
 
 	// Reconstruct links
 	links := make([]types.Link, len(metadata.Links))
 	for i, l := range metadata.Links {
-		var n1, n2 types.Node
+		var n1, n2 node.SimulatedNode
 		n1 = nodeNames[l.NodeName1]
 		n2 = nodeNames[l.NodeName2]
 		links[i] = linktypes.NewSimulatedLink(n1, n2)
 		innerProtocol.AddLink(links[i])
 	}
 
+	type positionState struct {
+		time     time.Time
+		position types.Vector
+	}
+
 	// Reconstruct states
+	positions := make(map[string][]positionState)
 	establishedLinks := make([][]types.Link, len(metadata.States))
 	for i, state := range metadata.States {
 		linkIxSeen := make(map[int]bool)
@@ -102,12 +111,21 @@ func (d *SimulationStateDeserializer) LoadIterator() types.SimulationController 
 				establishedLinks[i] = append(establishedLinks[i], links[linkIx])
 				linkIxSeen[linkIx] = true
 			}
+			positions[nodeState.Name] = append(positions[nodeState.Name], positionState{
+				time:     state.Time,
+				position: nodeState.Position,
+			})
 		}
 	}
 
 	innerProtocol.InjectEstablishedLinks(establishedLinks)
+	for name, node := range nodeNames {
+		for _, ps := range positions[name] {
+			node.AddPositionState(ps.time, ps.position)
+		}
+	}
 
-	simService := NewSimulationIteratorService(d.config)
+	simService := NewSimulationIteratorService(d.config, metadata.States)
 	simService.Inject(d.orchestrator)
 	simService.InjectSatellites(satellites)
 	simService.InjectGroundStations(groundStations)

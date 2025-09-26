@@ -39,10 +39,10 @@ func (l *SimulatedLink) IsReachable() bool {
 }
 
 func (l *SimulatedLink) GetOther(self types.Node) types.Node {
-	if self.GetName() == l.Node1.GetName() {
+	if self == l.Node1 {
 		return l.Node2
 	}
-	if self.GetName() == l.Node2.GetName() {
+	if self == l.Node2 {
 		return l.Node1
 	}
 	return nil
