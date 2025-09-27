@@ -63,11 +63,11 @@ func main() {
 			if err != nil {
 				log.Println("Routing error:", err)
 			} else {
-				log.Println(ground1.DistanceTo(ground2)/1000, "km apart")
 				log.Println("Route from", ground1.GetName(), "to", ground2.GetName(), "in", route.Latency(), "ms")
 				log.Println("Uplink latency", l1.Latency()+l2.Latency(), "ms")
 				log.Println("Latency between uplink nodes:", x.Latency(), "ms")
-				log.Println(uplinkSat1.GetName(), "->", l2.GetOther(ground2).GetName())
+				log.Println(ground1.GetName(), "->", uplinkSat1.GetName(), "->", uplinkSat2.GetName(), "->", ground2.GetName())
+				log.Println(l1.Distance(), "->", uplinkSat1.DistanceTo(uplinkSat2), "->", l2.Distance())
 				log.Println(uplinkSat1.DistanceTo(uplinkSat2)/1000, "km apart")
 				log.Println(uplinkSat1.GetPosition(), uplinkSat2.GetPosition())
 			}

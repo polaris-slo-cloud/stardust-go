@@ -16,6 +16,7 @@ type LinkFilterProtocol struct {
 	node        types.Node
 	links       map[types.Link]struct{}
 	established map[types.Link]struct{}
+	out         map[types.Link]struct{}
 	mu          sync.Mutex
 }
 
@@ -25,6 +26,7 @@ func NewLinkFilterProtocol(inner types.InterSatelliteLinkProtocol) *LinkFilterPr
 		inner:       inner,
 		links:       make(map[types.Link]struct{}),
 		established: make(map[types.Link]struct{}),
+		out:         make(map[types.Link]struct{}),
 	}
 }
 
@@ -103,12 +105,20 @@ func (p *LinkFilterProtocol) UpdateLinks() ([]types.Link, error) {
 		return nil, err
 	}
 
+	oldOut := p.out
+	p.out = make(map[types.Link]struct{})
 	filtered := make([]types.Link, 0, len(all))
 	for _, link := range all {
 		if involves(link, p.node) {
 			filtered = append(filtered, link)
 			p.established[link] = struct{}{}
+			p.out[link] = struct{}{}
+			delete(oldOut, link)
 		}
+	}
+
+	for l := range oldOut {
+		delete(p.established, l)
 	}
 
 	return filtered, nil
