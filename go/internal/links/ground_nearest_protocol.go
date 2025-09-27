@@ -49,16 +49,6 @@ func (p *GroundSatelliteNearestProtocol) DisconnectLink(link types.Link) error {
 	return nil
 }
 
-// ConnectSatellite is not used in this context.
-func (p *GroundSatelliteNearestProtocol) ConnectSatellite(s types.Node) error {
-	return nil
-}
-
-// DisconnectSatellite is not used in this context.
-func (p *GroundSatelliteNearestProtocol) DisconnectSatellite(s types.Node) error {
-	return nil
-}
-
 // UpdateLink selects the closest satellite and sets up the ground link accordingly.
 func (p *GroundSatelliteNearestProtocol) UpdateLinks() ([]types.Link, error) {
 	p.mu.Lock()

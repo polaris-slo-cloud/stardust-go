@@ -49,7 +49,7 @@ func main() {
 		<-done // blocks main goroutine until simulation stops
 	} else {
 		log.Println("Simulation loaded. Not autorunning as StepInterval < 0.")
-		for range 2 {
+		for range 20 {
 			simService.StepBySeconds(60 * 10) // Example: step by 60 seconds
 			var sats = simService.GetGroundStations()
 			var ground1 = sats[0]

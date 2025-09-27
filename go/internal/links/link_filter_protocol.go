@@ -2,6 +2,7 @@ package links
 
 import (
 	"errors"
+	"log"
 	"sync"
 
 	"github.com/keniack/stardustGo/pkg/types"
@@ -30,14 +31,14 @@ func NewLinkFilterProtocol(inner types.InterSatelliteLinkProtocol) *LinkFilterPr
 	}
 }
 
-// Mount binds the protocol to a specific node
 func (p *LinkFilterProtocol) Mount(s types.Node) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if p.node == nil {
-		p.node = s
-		p.inner.Mount(s)
+	if p.node != nil {
+		log.Fatalln("LinkFilterProtocol should not be mounted to a node twice")
 	}
+	p.node = s
+	p.inner.Mount(s)
 }
 
 func (p *LinkFilterProtocol) AddLink(link types.Link) {
@@ -62,34 +63,6 @@ func (p *LinkFilterProtocol) DisconnectLink(link types.Link) error {
 	defer p.mu.Unlock()
 	delete(p.established, link)
 	return p.inner.DisconnectLink(link)
-}
-
-func (p *LinkFilterProtocol) ConnectSatellite(n types.Node) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if p.node == n {
-		return errors.New("cannot connect to self")
-	}
-	for l := range p.links {
-		if involves(l, n) {
-			_ = p.ConnectLink(l)
-		}
-	}
-	return nil
-}
-
-func (p *LinkFilterProtocol) DisconnectSatellite(n types.Node) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if p.node == n {
-		return errors.New("cannot disconnect self")
-	}
-	for l := range p.links {
-		if involves(l, n) {
-			_ = p.DisconnectLink(l)
-		}
-	}
-	return nil
 }
 
 func (p *LinkFilterProtocol) UpdateLinks() ([]types.Link, error) {

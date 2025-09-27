@@ -57,16 +57,6 @@ func (p *IslAddSmartLoopProtocol) DisconnectLink(link types.Link) error {
 	return p.inner.DisconnectLink(link)
 }
 
-// ConnectSatellite forwards satellite connection to the inner protocol
-func (p *IslAddSmartLoopProtocol) ConnectSatellite(s types.Node) error {
-	return p.inner.ConnectSatellite(s)
-}
-
-// DisconnectSatellite forwards satellite disconnection to the inner protocol
-func (p *IslAddSmartLoopProtocol) DisconnectSatellite(s types.Node) error {
-	return p.inner.DisconnectSatellite(s)
-}
-
 // Links returns all candidate links from the inner protocol
 func (p *IslAddSmartLoopProtocol) Links() []types.Link {
 	return p.inner.Links()

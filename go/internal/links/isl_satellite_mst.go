@@ -59,11 +59,6 @@ func (p *IslSatelliteCentricMstProtocol) AddLink(link types.Link) {
 	}
 }
 
-// ConnectSatellite is not implemented in this strategy
-func (p *IslSatelliteCentricMstProtocol) ConnectSatellite(s types.Node) error {
-	return errors.New("ConnectSatellite not implemented")
-}
-
 // ConnectLink immediately establishes the given link
 func (p *IslSatelliteCentricMstProtocol) ConnectLink(link types.Link) error {
 	if isl, ok := link.(*linktypes.IslLink); ok {
@@ -72,11 +67,6 @@ func (p *IslSatelliteCentricMstProtocol) ConnectLink(link types.Link) error {
 		p.established = append(p.established, isl)
 	}
 	return nil
-}
-
-// DisconnectSatellite is not implemented in this strategy
-func (p *IslSatelliteCentricMstProtocol) DisconnectSatellite(s types.Node) error {
-	return errors.New("DisconnectSatellite not implemented")
 }
 
 // DisconnectLink removes a link from the list of established connections
@@ -184,13 +174,7 @@ func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.Link, error) {
 	// Update established status of links
 	estSet := make(map[*linktypes.IslLink]bool)
 	for _, l := range mst {
-		l.SetEstablished(true)
 		estSet[l] = true
-	}
-	for _, l := range p.established {
-		if !estSet[l] {
-			l.SetEstablished(false)
-		}
 	}
 	p.established = mst
 

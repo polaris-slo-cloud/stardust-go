@@ -69,14 +69,6 @@ func (p *PrecomputedLinkProtocol) Links() []types.Link {
 	return p.links
 }
 
-func (p *PrecomputedLinkProtocol) ConnectSatellite(s types.Node) error {
-	return nil
-}
-
-func (p *PrecomputedLinkProtocol) DisconnectSatellite(s types.Node) error {
-	return nil
-}
-
 func (p *PrecomputedLinkProtocol) AddLink(link types.Link) {
 	p.links = append(p.links, link)
 }

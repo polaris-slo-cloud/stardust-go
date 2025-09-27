@@ -113,8 +113,11 @@ func (p *IslMstProtocol) UpdateLinks() ([]types.Link, error) {
 		p.satellites = make([]types.Node, 0, len(satMap))
 		for _, sat := range satMap {
 			p.satellites = append(p.satellites, sat)
-			p.representatives[sat.GetName()] = sat.GetName()
 		}
+	}
+
+	for _, sat := range p.satellites {
+		p.representatives[sat.GetName()] = sat.GetName()
 	}
 
 	// Build list of eligible links
@@ -156,13 +159,7 @@ func (p *IslMstProtocol) UpdateLinks() ([]types.Link, error) {
 	// Update established set
 	estSet := make(map[*linktypes.IslLink]bool)
 	for _, l := range mst {
-		l.SetEstablished(true)
 		estSet[l] = true
-	}
-	for _, l := range p.established {
-		if !estSet[l] {
-			l.SetEstablished(false)
-		}
 	}
 	p.established = mst
 
@@ -180,16 +177,6 @@ func (p *IslMstProtocol) getRepresentative(name string) string {
 		name = p.representatives[name]
 	}
 	return name
-}
-
-// ConnectSatellite is not implemented in this strategy.
-func (p *IslMstProtocol) ConnectSatellite(types.Node) error {
-	return errors.New("ConnectSatellite not implemented")
-}
-
-// DisconnectSatellite is not implemented in this strategy.
-func (p *IslMstProtocol) DisconnectSatellite(types.Node) error {
-	return errors.New("DisconnectSatellite not implemented")
 }
 
 // Links returns a snapshot of all known candidate links.
