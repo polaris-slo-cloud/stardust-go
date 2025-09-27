@@ -11,7 +11,7 @@ func (r *UnreachableRouteResult) Reachable() bool {
 }
 
 func (r *UnreachableRouteResult) Latency() int {
-	return 0
+	return -1
 }
 
 func (r *UnreachableRouteResult) WaitLatencyAsync() error {

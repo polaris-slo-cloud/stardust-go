@@ -7,7 +7,7 @@ import (
 
 var _ types.Link = (*IslLink)(nil)
 
-const speedOfLight = configs.SpeedOfLight * 0.99 // 99% of light speed
+const linkSpeed = configs.SpeedOfLight * 0.99 // 99% of light speed
 
 // IslLink represents an inter-satellite laser link.
 type IslLink struct {
@@ -31,7 +31,7 @@ func (l *IslLink) Distance() float64 {
 
 // Latency returns the communication latency in milliseconds.
 func (l *IslLink) Latency() float64 {
-	return l.Distance() / speedOfLight * 1000
+	return l.Distance() / linkSpeed * 1000
 }
 
 // Bandwidth returns the bandwidth in bits per second.

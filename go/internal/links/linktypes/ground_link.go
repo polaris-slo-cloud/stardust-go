@@ -1,13 +1,10 @@
 package linktypes
 
 import (
-	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
 var _ types.Link = (*GroundLink)(nil)
-
-const groundSpeedOfLight = configs.SpeedOfLight * 0.98 // 98% of light speed
 
 type GroundLink struct {
 	GroundStation types.Node
@@ -29,7 +26,7 @@ func (gl *GroundLink) Distance() float64 {
 
 // Latency returns the one-way latency in milliseconds.
 func (gl *GroundLink) Latency() float64 {
-	return gl.Distance() / groundSpeedOfLight * 1000
+	return gl.Distance() / linkSpeed * 1000
 }
 
 // Bandwidth returns the link bandwidth in bits per second.

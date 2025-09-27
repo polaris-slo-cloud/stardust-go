@@ -24,7 +24,7 @@ func (l *PrecomputedLink) Distance() float64 {
 }
 
 func (l *PrecomputedLink) Latency() float64 {
-	return l.Distance() / speedOfLight * 1000
+	return l.Distance() / linkSpeed * 1000
 }
 
 func (l *PrecomputedLink) Bandwidth() float64 {

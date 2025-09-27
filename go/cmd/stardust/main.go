@@ -59,15 +59,16 @@ func main() {
 			var uplinkSat1 = l1.GetOther(ground1)
 			var uplinkSat2 = l2.GetOther(ground2)
 			var route, err = ground1.GetRouter().RouteAsyncToNode(ground2, nil)
-			var x, _ = uplinkSat1.GetRouter().RouteAsyncToNode(uplinkSat2, nil)
+			var interSatelliteRoute, _ = uplinkSat1.GetRouter().RouteAsyncToNode(uplinkSat2, nil)
 			if err != nil {
 				log.Println("Routing error:", err)
 			} else {
 				log.Println("Route from", ground1.GetName(), "to", ground2.GetName(), "in", route.Latency(), "ms")
 				log.Println("Uplink latency", l1.Latency()+l2.Latency(), "ms")
-				log.Println("Latency between uplink nodes:", x.Latency(), "ms")
+				log.Println("Latency between uplink nodes:", interSatelliteRoute.Latency(), "ms")
 				log.Println(ground1.GetName(), "->", uplinkSat1.GetName(), "->", uplinkSat2.GetName(), "->", ground2.GetName())
 				log.Println(l1.Distance(), "->", uplinkSat1.DistanceTo(uplinkSat2), "->", l2.Distance())
+				log.Println(l1.Latency(), "->", interSatelliteRoute.Latency(), "->", l2.Latency())
 				log.Println(uplinkSat1.DistanceTo(uplinkSat2)/1000, "km apart")
 				log.Println(uplinkSat1.GetPosition(), uplinkSat2.GetPosition())
 			}
