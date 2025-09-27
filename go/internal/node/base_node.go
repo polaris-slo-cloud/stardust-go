@@ -28,13 +28,13 @@ func (n *BaseNode) GetComputing() types.Computing {
 	return n.Computing
 }
 
-func (n *BaseNode) PositionVector() types.Vector {
+func (n *BaseNode) GetPosition() types.Vector {
 	return n.Position
 }
 
 func (n *BaseNode) DistanceTo(other types.Node) float64 {
-	dx := other.PositionVector().X - n.Position.X
-	dy := other.PositionVector().Y - n.Position.Y
-	dz := other.PositionVector().Z - n.Position.Z
+	dx := other.GetPosition().X - n.Position.X
+	dy := other.GetPosition().Y - n.Position.Y
+	dz := other.GetPosition().Z - n.Position.Z
 	return math.Sqrt(dx*dx + dy*dy + dz*dz)
 }

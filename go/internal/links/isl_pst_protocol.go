@@ -102,12 +102,12 @@ func (p *IslPstProtocol) UpdateLinks() ([]types.Link, error) {
 	}
 
 	p.mu.Lock()
-	if p.position.Equals(p.satellite.PositionVector()) {
+	if p.position.Equals(p.satellite.GetPosition()) {
 		p.mu.Unlock()
 		p.resetEvent.Wait()
 		return p.resultCache, nil
 	}
-	p.position = p.satellite.PositionVector()
+	p.position = p.satellite.GetPosition()
 	p.resetEvent.Reset()
 	p.mu.Unlock()
 

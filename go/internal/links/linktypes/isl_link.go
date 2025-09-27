@@ -41,8 +41,8 @@ func (l *IslLink) Bandwidth() float64 {
 
 // IsReachable checks if line-of-sight is available.
 func (l *IslLink) IsReachable() bool {
-	v := l.Node2.PositionVector().Subtract(l.Node1.PositionVector())
-	cross := v.Cross(l.Node1.PositionVector())
+	v := l.Node2.GetPosition().Subtract(l.Node1.GetPosition())
+	cross := v.Cross(l.Node1.GetPosition())
 	d := cross.Magnitude() / v.Magnitude()
 	return d > configs.EarthRadius+10_000 // 10 km buffer
 }

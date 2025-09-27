@@ -104,7 +104,7 @@ func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.Link, error) {
 		return nil, errors.New("satellite not mounted")
 	}
 
-	if p.position.Equals(p.satellite.PositionVector()) {
+	if p.position.Equals(p.satellite.GetPosition()) {
 		select {
 		case <-p.readyCh:
 		default:
@@ -115,7 +115,7 @@ func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.Link, error) {
 		}
 		return result, nil
 	}
-	p.position = p.satellite.PositionVector()
+	p.position = p.satellite.GetPosition()
 
 	// Build unique set of reachable satellites
 	satMap := map[types.Satellite]bool{}

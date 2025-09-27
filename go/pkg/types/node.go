@@ -14,8 +14,8 @@ type Node interface {
 	// GetComputing returns the computing instance associated with the node
 	GetComputing() Computing
 
-	// PositionVector returns the current position of the node in ECEF coordinates
-	PositionVector() Vector
+	// GetPosition returns the current position of the node in ECEF coordinates
+	GetPosition() Vector
 
 	// DistanceTo computes the distance to another node in meters
 	DistanceTo(other Node) float64

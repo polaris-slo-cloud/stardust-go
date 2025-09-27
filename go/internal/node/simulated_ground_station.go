@@ -6,17 +6,17 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
-var _ types.GroundStation = (*SimulatedGroundStation)(nil)
+var _ types.GroundStation = (*PrecomputedGroundStation)(nil)
 
-type SimulatedGroundStation struct {
+type PrecomputedGroundStation struct {
 	BaseNode
 
 	LinkProtocol types.LinkNodeProtocol
 	positions    map[time.Time]types.Vector
 }
 
-func NewSimulatedGroundStation(name string, router types.Router, computing types.Computing, linkProtocol types.LinkNodeProtocol) *SimulatedGroundStation {
-	groundStation := &SimulatedGroundStation{
+func NewSimulatedGroundStation(name string, router types.Router, computing types.Computing, linkProtocol types.LinkNodeProtocol) *PrecomputedGroundStation {
+	groundStation := &PrecomputedGroundStation{
 		BaseNode:     BaseNode{Name: name, Router: router, Computing: computing},
 		LinkProtocol: linkProtocol,
 		positions:    make(map[time.Time]types.Vector),
@@ -28,14 +28,14 @@ func NewSimulatedGroundStation(name string, router types.Router, computing types
 	return groundStation
 }
 
-func (s *SimulatedGroundStation) UpdatePosition(time time.Time) {
+func (s *PrecomputedGroundStation) UpdatePosition(time time.Time) {
 	s.Position = s.positions[time]
 }
 
-func (s *SimulatedGroundStation) GetLinkNodeProtocol() types.LinkNodeProtocol {
+func (s *PrecomputedGroundStation) GetLinkNodeProtocol() types.LinkNodeProtocol {
 	return s.LinkProtocol
 }
 
-func (s *SimulatedGroundStation) AddPositionState(time time.Time, position types.Vector) {
+func (s *PrecomputedGroundStation) AddPositionState(time time.Time, position types.Vector) {
 	s.positions[time] = position
 }

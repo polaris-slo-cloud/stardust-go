@@ -64,7 +64,7 @@ func (d *SimulationStateDeserializer) LoadIterator() types.SimulationController 
 	innerProtocol := links.NewSimulatedLinkProtocol()
 
 	// Reconstruct nodes
-	nodeNames := make(map[string]node.SimulatedNode)
+	nodeNames := make(map[string]node.PrecomputedNode)
 	satellites := make([]types.Node, len(metadata.Satellites))
 	for i, sat := range metadata.Satellites {
 		router, _ := d.routerBuilder.Build()
@@ -86,10 +86,10 @@ func (d *SimulationStateDeserializer) LoadIterator() types.SimulationController 
 	// Reconstruct links
 	links := make([]types.Link, len(metadata.Links))
 	for i, l := range metadata.Links {
-		var n1, n2 node.SimulatedNode
+		var n1, n2 node.PrecomputedNode
 		n1 = nodeNames[l.NodeName1]
 		n2 = nodeNames[l.NodeName2]
-		links[i] = linktypes.NewSimulatedLink(n1, n2)
+		links[i] = linktypes.NewPrecomputedLink(n1, n2)
 		innerProtocol.AddLink(links[i])
 	}
 

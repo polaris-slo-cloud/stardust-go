@@ -64,14 +64,14 @@ func (s *SatelliteStruct) GetName() string {
 	return s.Name
 }
 
-// PositionVector returns the satellite's current position
-func (s *SatelliteStruct) PositionVector() types.Vector {
+// GetPosition returns the satellite's current position
+func (s *SatelliteStruct) GetPosition() types.Vector {
 	return s.position
 }
 
 // DistanceTo calculates the distance between this satellite and another node (satellite or ground station)
 func (s *SatelliteStruct) DistanceTo(other types.Node) float64 {
-	return s.position.Subtract(other.PositionVector()).Magnitude()
+	return s.position.Subtract(other.GetPosition()).Magnitude()
 }
 
 func (s *SatelliteStruct) GetComputing() types.Computing {

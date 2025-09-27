@@ -48,12 +48,12 @@ func (p *SimulatedLinkProtocol) DisconnectLink(link types.Link) error {
 func (p *SimulatedLinkProtocol) UpdateLinks() ([]types.Link, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if p.position == p.node.PositionVector() {
+	if p.position == p.node.GetPosition() {
 		return p.established[p.currentIx], nil
 	}
 
 	p.currentIx++
-	p.position = p.node.PositionVector()
+	p.position = p.node.GetPosition()
 	return p.established[p.currentIx], nil
 }
 

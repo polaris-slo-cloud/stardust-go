@@ -6,10 +6,10 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
-var _ SimulatedNode = (*SimulatedSatellite)(nil)
-var _ SimulatedNode = (*SimulatedGroundStation)(nil)
+var _ PrecomputedNode = (*PrecomputedSatellite)(nil)
+var _ PrecomputedNode = (*PrecomputedGroundStation)(nil)
 
-type SimulatedNode interface {
+type PrecomputedNode interface {
 	types.Node
 	AddPositionState(time time.Time, position types.Vector)
 }

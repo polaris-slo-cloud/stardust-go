@@ -69,7 +69,7 @@ func main() {
 				log.Println("Latency between uplink nodes:", x.Latency(), "ms")
 				log.Println(uplinkSat1.GetName(), "->", l2.GetOther(ground2).GetName())
 				log.Println(uplinkSat1.DistanceTo(uplinkSat2)/1000, "km apart")
-				log.Println(uplinkSat1.PositionVector(), uplinkSat2.PositionVector())
+				log.Println(uplinkSat1.GetPosition(), uplinkSat2.GetPosition())
 			}
 			log.Println(len(sats), "satellites in simulation.")
 			log.Println("Simulation stepped by 60 seconds.")

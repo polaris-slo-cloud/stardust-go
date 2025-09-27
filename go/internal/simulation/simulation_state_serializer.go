@@ -51,7 +51,7 @@ func (s *SimulationStateSerializer) AddState(simulationController types.Simulati
 			}
 			linkIxs = append(linkIxs, linkIx)
 		}
-		nodeStates = append(nodeStates, NewNodeState(node.GetName(), node.PositionVector(), linkIxs))
+		nodeStates = append(nodeStates, NewNodeState(node.GetName(), node.GetPosition(), linkIxs))
 	}
 	s.metadata.States = append(s.metadata.States, NewSimulationState(simulationController.GetSimulationTime(), nodeStates))
 }
