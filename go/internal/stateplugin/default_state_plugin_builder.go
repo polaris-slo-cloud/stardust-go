@@ -6,16 +6,18 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
-type StatePluginBuilder struct {
+var _ types.StatePluginBuilder = (*DefaultStatePluginBuilder)(nil)
+
+type DefaultStatePluginBuilder struct {
 }
 
 // NewStatePluginBuilder creates a new instance of StatePluginBuilder
-func NewStatePluginBuilder() *StatePluginBuilder {
-	return &StatePluginBuilder{}
+func NewStatePluginBuilder() *DefaultStatePluginBuilder {
+	return &DefaultStatePluginBuilder{}
 }
 
 // BuildPlugins constructs plugin instances based on provided names
-func (pb *StatePluginBuilder) BuildPlugins(pluginNames []string) ([]types.StatePlugin, error) {
+func (pb *DefaultStatePluginBuilder) BuildPlugins(pluginNames []string) ([]types.StatePlugin, error) {
 	var plugins []types.StatePlugin
 	for _, name := range pluginNames {
 		switch name {

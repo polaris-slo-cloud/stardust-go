@@ -49,7 +49,7 @@ func main() {
 		<-done // blocks main goroutine until simulation stops
 	} else {
 		log.Println("Simulation loaded. Not autorunning as StepInterval < 0.")
-		for range 20 {
+		for range 1 {
 			simService.StepBySeconds(60 * 10) // Example: step by 60 seconds
 			var sats = simService.GetGroundStations()
 			var ground1 = sats[0]
@@ -75,8 +75,8 @@ func main() {
 			log.Println(len(sats), "satellites in simulation.")
 			log.Println("Simulation stepped by 60 seconds.")
 
-			// var statePlugin = types.GetStatePlugin[*stateplugin.DummySunStatePlugin](simService.GetStatePluginRepository())
-			// log.Println("Sunlight exposure of", uplinkSat1.GetName(), "is", statePlugin.GetSunlightExposure(uplinkSat1))
+			var statePlugin = types.GetStatePlugin[stateplugin.SunStatePlugin](simService.GetStatePluginRepository())
+			log.Println("Sunlight exposure of", uplinkSat1.GetName(), "is", statePlugin.GetSunlightExposure(uplinkSat1))
 		}
 	}
 }
@@ -96,10 +96,13 @@ func startSimulationIteration(cfg *configs.Config, simulationStateInputFile stri
 		return nil
 	}
 
+	// Step 5: State Plugin Builder
+	statePluginBuilder := stateplugin.NewStatePluginPrecompBuilder(simulationStateInputFile)
+
 	// Step 6: Inject orchestrator (if used)
 	orchestrator := deployment.NewDeploymentOrchestrator()
 
-	simStateDeserializer := simulation.NewSimulationStateDeserializer(&cfg.Simulation, simulationStateInputFile, computingBuilder, routerBuilder, orchestrator, simPlugins)
+	simStateDeserializer := simulation.NewSimulationStateDeserializer(&cfg.Simulation, simulationStateInputFile, computingBuilder, routerBuilder, orchestrator, simPlugins, statePluginBuilder)
 	return simStateDeserializer.LoadIterator()
 }
 

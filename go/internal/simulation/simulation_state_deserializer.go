@@ -18,28 +18,30 @@ import (
 
 // SimulationStateDeserializer is responsible for deserializing simulation state data.
 type SimulationStateDeserializer struct {
-	inputFile        string
-	computingBuilder computing.ComputingBuilder
-	routerBuilder    *routing.RouterBuilder
-	orchestrator     *deployment.DeploymentOrchestrator
-	simPlugins       []types.SimulationPlugin
-	config           *configs.SimulationConfig
+	inputFile          string
+	computingBuilder   computing.ComputingBuilder
+	routerBuilder      *routing.RouterBuilder
+	orchestrator       *deployment.DeploymentOrchestrator
+	simPlugins         []types.SimulationPlugin
+	statePluginBuilder types.StatePluginBuilder
+	config             *configs.SimulationConfig
 }
 
 // NewSimulationStateDeserializer creates a new deserializer instance.
-func NewSimulationStateDeserializer(config *configs.SimulationConfig, inputFile string, computingBuilder computing.ComputingBuilder, routerBuilder *routing.RouterBuilder, orchestrator *deployment.DeploymentOrchestrator, simPlugins []types.SimulationPlugin) *SimulationStateDeserializer {
+func NewSimulationStateDeserializer(config *configs.SimulationConfig, inputFile string, computingBuilder computing.ComputingBuilder, routerBuilder *routing.RouterBuilder, orchestrator *deployment.DeploymentOrchestrator, simPlugins []types.SimulationPlugin, statePluginBuilder types.StatePluginBuilder) *SimulationStateDeserializer {
 	return &SimulationStateDeserializer{
-		inputFile:        inputFile,
-		computingBuilder: computingBuilder,
-		routerBuilder:    routerBuilder,
-		orchestrator:     orchestrator,
-		simPlugins:       simPlugins,
-		config:           config,
+		inputFile:          inputFile,
+		computingBuilder:   computingBuilder,
+		routerBuilder:      routerBuilder,
+		orchestrator:       orchestrator,
+		simPlugins:         simPlugins,
+		config:             config,
+		statePluginBuilder: statePluginBuilder,
 	}
 }
 
 // Load reads the serialized data from the input file and returns the reconstructed SimulationMetadata.
-func (d *SimulationStateDeserializer) load() *SimulationMetadata {
+func (d *SimulationStateDeserializer) load() *types.SimulationMetadata {
 	file, err := os.Open(d.inputFile)
 	if err != nil {
 		log.Fatalln("Failed to open simulation state file:", err)
@@ -50,7 +52,7 @@ func (d *SimulationStateDeserializer) load() *SimulationMetadata {
 	decoder := gob.NewDecoder(file)
 
 	// Decode the data
-	var metadata SimulationMetadata
+	var metadata types.SimulationMetadata
 	if err := decoder.Decode(&metadata); err != nil {
 		log.Fatalln("Failed to decode simulation state:", err)
 	}
@@ -125,7 +127,11 @@ func (d *SimulationStateDeserializer) LoadIterator() types.SimulationController 
 		}
 	}
 
-	simService := NewSimulationIteratorService(d.config, metadata.States, d.simPlugins)
+	// STATE PLUGINS
+	plugins, _ := d.statePluginBuilder.BuildPlugins(metadata.StatePlugins)
+	statePluginRepository := *types.NewStatePluginRepository(plugins)
+
+	simService := NewSimulationIteratorService(d.config, metadata.States, d.simPlugins, statePluginRepository)
 	simService.Inject(d.orchestrator)
 	simService.InjectSatellites(satellites)
 	simService.InjectGroundStations(groundStations)

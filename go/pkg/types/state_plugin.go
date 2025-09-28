@@ -1,9 +1,25 @@
 package types
 
-import "reflect"
+import (
+	"reflect"
+)
 
 type StatePlugin interface {
+
+	// GetName returns the name of the plugin
+	GetName() string
+
+	// GetType return the type/interface of the plugin
+	GetType() reflect.Type
+
+	// PostSimulationStep does all the computation to calculate some state of the simulation
 	PostSimulationStep(simulationController SimulationController)
+
+	// AddState add the current state to be saved to output file
+	AddState(simulationController SimulationController)
+
+	// Save to save the states to file
+	Save(filename string)
 }
 
 type StatePluginRepository struct {
@@ -17,7 +33,7 @@ func NewStatePluginRepository(plugins []StatePlugin) *StatePluginRepository {
 	}
 	for _, plugin := range plugins {
 		// Use the concrete type of the plugin as the key
-		typ := reflect.TypeOf(plugin)
+		typ := plugin.GetType()
 		repo.plugins[typ] = plugin
 	}
 	return repo

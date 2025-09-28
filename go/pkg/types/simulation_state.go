@@ -1,9 +1,7 @@
-package simulation
+package types
 
 import (
 	"time"
-
-	"github.com/keniack/stardustGo/pkg/types"
 )
 
 type SimulationLink struct {
@@ -12,10 +10,11 @@ type SimulationLink struct {
 }
 
 type SimulationMetadata struct {
-	Satellites []RawSatellite
-	Grounds    []RawGroundStation
-	Links      []SimulationLink
-	States     []SimulationState
+	StatePlugins []string
+	Satellites   []RawSatellite
+	Grounds      []RawGroundStation
+	Links        []SimulationLink
+	States       []SimulationState
 }
 
 type SimulationState struct {
@@ -25,24 +24,25 @@ type SimulationState struct {
 
 type NodeState struct {
 	Name        string
-	Position    types.Vector
+	Position    Vector
 	Established []int
 }
 
 type RawSatellite struct {
 	Name          string
-	ComputingType types.ComputingType
+	ComputingType ComputingType
 }
 
 type RawGroundStation struct {
 	Name          string
-	ComputingType types.ComputingType
+	ComputingType ComputingType
 }
 
 func NewSimulationMetadata() SimulationMetadata {
 	return SimulationMetadata{
-		Links:  []SimulationLink{},
-		States: []SimulationState{},
+		StatePlugins: []string{},
+		Links:        []SimulationLink{},
+		States:       []SimulationState{},
 	}
 }
 
@@ -53,7 +53,7 @@ func NewSimulationState(time time.Time, nodes []NodeState) SimulationState {
 	}
 }
 
-func NewNodeState(name string, position types.Vector, established []int) NodeState {
+func NewNodeState(name string, position Vector, established []int) NodeState {
 	return NodeState{
 		Name:        name,
 		Position:    position,

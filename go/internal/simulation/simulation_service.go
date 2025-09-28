@@ -33,7 +33,7 @@ func NewSimulationService(
 	config *configs.SimulationConfig,
 	router *routing.RouterBuilder,
 	computing *computing.DefaultComputingBuilder,
-	plugins []types.SimulationPlugin,
+	simplugins []types.SimulationPlugin,
 	statePluginRepo *types.StatePluginRepository,
 	simualtionStateOutputFile *string,
 ) *SimulationService {
@@ -41,13 +41,13 @@ func NewSimulationService(
 		routerBuilder:    router,
 		computingBuilder: computing,
 		maxCores:         config.MaxCpuCores,
-		simplugins:       plugins,
+		simplugins:       simplugins,
 		statePluginRepo:  statePluginRepo,
 	}
 	simService.BaseSimulationService = NewBaseSimulationService(config, simService.runSimulationStep)
 
 	if *simualtionStateOutputFile != "" {
-		simService.simulationStateSerializer = NewSimulationStateSerializer(*simualtionStateOutputFile)
+		simService.simulationStateSerializer = NewSimulationStateSerializer(*simualtionStateOutputFile, statePluginRepo.GetAllPlugins())
 		log.Printf("Simulation state will be serialized to %s", *simualtionStateOutputFile)
 	}
 

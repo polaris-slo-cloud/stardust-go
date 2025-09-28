@@ -14,25 +14,27 @@ var _ types.SimulationController = (*SimulationIteratorService)(nil)
 type SimulationIteratorService struct {
 	BaseSimulationService
 
-	simulationStates []SimulationState
-	simPlugins       []types.SimulationPlugin
-	running          bool
-	currentIx        int
+	simulationStates      []types.SimulationState
+	simPlugins            []types.SimulationPlugin
+	statePluginRepository types.StatePluginRepository
+	running               bool
+	currentIx             int
 }
 
-func NewSimulationIteratorService(config *configs.SimulationConfig, simulationStates []SimulationState, simPlugins []types.SimulationPlugin) *SimulationIteratorService {
+func NewSimulationIteratorService(config *configs.SimulationConfig, simulationStates []types.SimulationState, simPlugins []types.SimulationPlugin, statePluginRepository types.StatePluginRepository) *SimulationIteratorService {
 	service := &SimulationIteratorService{
-		simulationStates: simulationStates,
-		simPlugins:       simPlugins,
-		running:          false,
-		currentIx:        -1,
+		simulationStates:      simulationStates,
+		simPlugins:            simPlugins,
+		statePluginRepository: statePluginRepository,
+		running:               false,
+		currentIx:             -1,
 	}
 	service.BaseSimulationService = NewBaseSimulationService(config, service.runSimulationStep)
 	return service
 }
 
 func (s *SimulationIteratorService) GetStatePluginRepository() *types.StatePluginRepository {
-	return nil
+	return &s.statePluginRepository
 }
 
 func (s *SimulationIteratorService) Close() {
@@ -94,10 +96,10 @@ func (s *SimulationIteratorService) runSimulationStep(nextTime func(time.Time) t
 		// s.orchestrator.CheckReschedule()
 	}
 
-	// // Execute post-step state plugins
-	// for _, plugin := range s.statePluginRepo.GetAllPlugins() {
-	// 	plugin.PostSimulationStep(s)
-	// }
+	// Execute post-step state plugins
+	for _, plugin := range s.statePluginRepository.GetAllPlugins() {
+		plugin.PostSimulationStep(s)
+	}
 
 	// Execute post-step simulation plugins
 	for _, plugin := range s.simPlugins {
