@@ -1,0 +1,9 @@
+- Cores: 0
+  Memory: 0
+  Type: None
+- Cores: 512
+  Memory: 4096
+  Type: Edge
+- Cores: 1024
+  Memory: 32768
+  Type: Cloud

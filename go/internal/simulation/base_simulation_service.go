@@ -18,6 +18,8 @@ type BaseSimulationService struct {
 	satellites  []types.Satellite
 	groundNodes []types.GroundStation
 
+	stepCount    int
+	maxStepCount int
 	autorun      bool
 	simTime      time.Time
 	orchestrator *deployment.DeploymentOrchestrator
@@ -32,6 +34,8 @@ func NewBaseSimulationService(config *configs.SimulationConfig, runSimulationSte
 		all:               []types.Node{},
 		satellites:        []types.Satellite{},
 		groundNodes:       []types.GroundStation{},
+		stepCount:         0,
+		maxStepCount:      config.StepCount,
 		simTime:           config.SimulationStartTime,
 		runSimulationStep: runSimulationStep,
 	}
@@ -90,7 +94,7 @@ func (s *BaseSimulationService) StartAutorun() <-chan struct{} {
 	go func() {
 		// While autorun is enabled, run simulation steps at configured intervals
 		for {
-			if !s.autorun {
+			if !s.autorun || s.stepCount > s.maxStepCount {
 				break
 			}
 
@@ -99,6 +103,7 @@ func (s *BaseSimulationService) StartAutorun() <-chan struct{} {
 			})
 
 			time.Sleep(time.Duration(s.config.StepInterval) * time.Millisecond)
+			s.stepCount++
 		}
 		close(done) // closed when simulation loop exits
 	}()

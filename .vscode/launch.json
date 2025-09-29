@@ -11,8 +11,8 @@
       "mode": "auto",
       "program": "${workspaceFolder}/go/cmd/stardust",
       "cwd": "${workspaceFolder}/go",
-      "args": ["--configFile", "./configs/appsettings.yaml", "--simulationStateInputFile", "./simulation_state_output.gob"],
-      // "args": ["--configFile", "./configs/appsettings.yaml", "--simulationStateOutputFile", "./simulation_state_output.gob"],
+      "args": ["--simulationConfig", "./resources/configs/simulationManualConfig.yaml", "--computingConfig", "./resources/configs/computingConfig.yaml", "--routerConfig", "./resources/configs/routerAStarConfig.yaml", "--simulationStateInputFile", "./simulation_state_output.gob", "--simulationPlugins", "DummyPlugin"],
+      // "args": ["--simulationConfig", "./resources/configs/simulationAutorunConfig.yaml", "--islConfig", "./resources/configs/islMstConfig.yaml", "--groundLinkConfig", "./resources/configs/groundLinkNearestConfig.yaml", "--computingConfig", "./resources/configs/computingConfig.yaml", "--routerConfig", "./resources/configs/routerAStarConfig.yaml", "--simulationStateOutputFile", "./simulation_state_output.gob", "--simulationPlugins", "DummyPlugin", "--statePlugins", "DummyPlugin"],
     }
   ]
 }

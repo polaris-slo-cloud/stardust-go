@@ -11,17 +11,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type Config struct {
-	Simulation SimulationConfig         `json:"SimulationConfiguration" yaml:"SimulationConfiguration"`
-	ISL        InterSatelliteLinkConfig `json:"InterSatelliteLinkConfig" yaml:"InterSatelliteLinkConfig"`
-	Ground     GroundLinkConfig         `json:"GroundLinkConfig" yaml:"GroundLinkConfig"`
-	Router     RouterConfig             `json:"RouterConfig" yaml:"RouterConfig"`
-	Computing  []ComputingConfig        `json:"ComputingConfiguration" yaml:"ComputingConfiguration"`
-}
-
 type SimulationConfig struct {
 	StepInterval                int       `json:"StepInterval" yaml:"StepInterval"`
 	StepMultiplier              int       `json:"StepMultiplier" yaml:"StepMultiplier"`
+	StepCount                   int       `json:"StepCount" yaml:"StepCount"`
 	SatelliteDataSource         string    `json:"SatelliteDataSource" yaml:"SatelliteDataSource"`
 	SatelliteDataSourceType     string    `json:"SatelliteDataSourceType" yaml:"SatelliteDataSourceType"`
 	GroundStationDataSource     string    `json:"GroundStationDataSource" yaml:"GroundStationDataSource"`
@@ -29,7 +22,6 @@ type SimulationConfig struct {
 	UsePreRouteCalc             bool      `json:"UsePreRouteCalc" yaml:"UsePreRouteCalc"`
 	MaxCpuCores                 int       `json:"MaxCpuCores" yaml:"MaxCpuCores"`
 	SimulationStartTime         time.Time `json:"SimulationStartTime" yaml:"SimulationStartTime"`
-	Plugins                     []string  `json:"Plugins" yaml:"Plugins"`
 }
 
 type InterSatelliteLinkConfig struct {
@@ -51,13 +43,15 @@ type ComputingConfig struct {
 	Type   types.ComputingType `json:"Type" yaml:"Type"` // Should be either "Edge" or "Cloud"
 }
 
-func LoadConfigFromFile(path string) (*Config, error) {
+// LoadConfigFromFile loads a configuration of type T from a file.
+// Supported file types: .yaml, .yml, .json
+func LoadConfigFromFile[T any](path string) (*T, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	var cfg Config
+	var cfg T
 	ext := filepath.Ext(path)
 	switch ext {
 	case ".yaml", ".yml":
