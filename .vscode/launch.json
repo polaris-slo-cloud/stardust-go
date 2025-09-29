@@ -11,7 +11,8 @@
       "mode": "auto",
       "program": "${workspaceFolder}/go/cmd/stardust",
       "cwd": "${workspaceFolder}/go",
-      "args": ["./configs/appsettings.yaml"],
+      "args": ["--configFile", "./configs/appsettings.yaml", "--simulationStateInputFile", "./simulation_state_output.gob"],
+      // "args": ["--configFile", "./configs/appsettings.yaml", "--simulationStateOutputFile", "./simulation_state_output.gob"],
     }
   ]
 }

@@ -12,7 +12,7 @@ SimulationConfiguration:
     - DummyPlugin
 InterSatelliteLinkConfig:
   Neighbours: 4
-  Protocol: mst_smart_loop
+  Protocol: mst
 GroundLinkConfig:
   Protocol: nearest
 RouterConfig:

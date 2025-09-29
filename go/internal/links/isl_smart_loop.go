@@ -57,16 +57,6 @@ func (p *IslAddSmartLoopProtocol) DisconnectLink(link types.Link) error {
 	return p.inner.DisconnectLink(link)
 }
 
-// ConnectSatellite forwards satellite connection to the inner protocol
-func (p *IslAddSmartLoopProtocol) ConnectSatellite(s types.Node) error {
-	return p.inner.ConnectSatellite(s)
-}
-
-// DisconnectSatellite forwards satellite disconnection to the inner protocol
-func (p *IslAddSmartLoopProtocol) DisconnectSatellite(s types.Node) error {
-	return p.inner.DisconnectSatellite(s)
-}
-
 // Links returns all candidate links from the inner protocol
 func (p *IslAddSmartLoopProtocol) Links() []types.Link {
 	return p.inner.Links()
@@ -85,12 +75,12 @@ func (p *IslAddSmartLoopProtocol) UpdateLinks() ([]types.Link, error) {
 
 	p.mu.Lock()
 	// Return cached if position hasn't changed
-	if p.position.Equals(p.satellite.PositionVector()) {
+	if p.position.Equals(p.satellite.GetPosition()) {
 		p.mu.Unlock()
 		p.resetEvent.Wait() // Wait until ready
 		return p.resultCache, nil
 	}
-	p.position = p.satellite.PositionVector()
+	p.position = p.satellite.GetPosition()
 	p.resetEvent.Reset() // Mark as busy
 	p.mu.Unlock()
 

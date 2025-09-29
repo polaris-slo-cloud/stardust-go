@@ -19,11 +19,11 @@ type IslSatelliteCentricMstProtocol struct {
 	links       []*linktypes.IslLink // All candidate links
 	established []*linktypes.IslLink // Currently established MST links
 
-	satellite  *types.Satellite   // The local satellite this protocol is mounted to
-	satellites []*types.Satellite // Cache of reachable satellites
-	position   types.Vector       // Last position at which MST was calculated
+	satellite  types.Satellite   // The local satellite this protocol is mounted to
+	satellites []types.Satellite // Cache of reachable satellites
+	position   types.Vector      // Last position at which MST was calculated
 
-	visited map[*types.Satellite]bool   // Visited set for MST
+	visited map[types.Satellite]bool    // Visited set for MST
 	pq      linktypes.LinkPriorityQueue // Priority queue for link selection
 	mu      sync.Mutex                  // Protects state access
 
@@ -35,7 +35,7 @@ func NewIslSatelliteCentricMstProtocol() *IslSatelliteCentricMstProtocol {
 	return &IslSatelliteCentricMstProtocol{
 		links:       []*linktypes.IslLink{},
 		established: []*linktypes.IslLink{},
-		visited:     make(map[*types.Satellite]bool),
+		visited:     make(map[types.Satellite]bool),
 		pq:          *linktypes.NewLinkPriorityQueue(),
 		readyCh:     make(chan struct{}, 1),
 	}
@@ -44,7 +44,7 @@ func NewIslSatelliteCentricMstProtocol() *IslSatelliteCentricMstProtocol {
 // Mount binds the protocol to a satellite
 func (p *IslSatelliteCentricMstProtocol) Mount(sat types.Node) {
 	if p.satellite == nil {
-		if s, ok := sat.(*types.Satellite); ok {
+		if s, ok := sat.(types.Satellite); ok {
 			p.satellite = s
 		}
 	}
@@ -59,11 +59,6 @@ func (p *IslSatelliteCentricMstProtocol) AddLink(link types.Link) {
 	}
 }
 
-// ConnectSatellite is not implemented in this strategy
-func (p *IslSatelliteCentricMstProtocol) ConnectSatellite(s types.Node) error {
-	return errors.New("ConnectSatellite not implemented")
-}
-
 // ConnectLink immediately establishes the given link
 func (p *IslSatelliteCentricMstProtocol) ConnectLink(link types.Link) error {
 	if isl, ok := link.(*linktypes.IslLink); ok {
@@ -72,11 +67,6 @@ func (p *IslSatelliteCentricMstProtocol) ConnectLink(link types.Link) error {
 		p.established = append(p.established, isl)
 	}
 	return nil
-}
-
-// DisconnectSatellite is not implemented in this strategy
-func (p *IslSatelliteCentricMstProtocol) DisconnectSatellite(s types.Node) error {
-	return errors.New("DisconnectSatellite not implemented")
 }
 
 // DisconnectLink removes a link from the list of established connections
@@ -104,7 +94,7 @@ func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.Link, error) {
 		return nil, errors.New("satellite not mounted")
 	}
 
-	if p.position.Equals(p.satellite.PositionVector()) {
+	if p.position.Equals(p.satellite.GetPosition()) {
 		select {
 		case <-p.readyCh:
 		default:
@@ -115,25 +105,25 @@ func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.Link, error) {
 		}
 		return result, nil
 	}
-	p.position = p.satellite.PositionVector()
+	p.position = p.satellite.GetPosition()
 
 	// Build unique set of reachable satellites
-	satMap := map[*types.Satellite]bool{}
+	satMap := map[types.Satellite]bool{}
 	for _, link := range p.links {
-		if n1, ok := link.Node1.(*types.Satellite); ok {
+		if n1, ok := link.Node1.(types.Satellite); ok {
 			satMap[n1] = true
 		}
-		if n2, ok := link.Node2.(*types.Satellite); ok {
+		if n2, ok := link.Node2.(types.Satellite); ok {
 			satMap[n2] = true
 		}
 	}
 
-	p.satellites = make([]*types.Satellite, 0, len(satMap))
+	p.satellites = make([]types.Satellite, 0, len(satMap))
 	for sat := range satMap {
 		p.satellites = append(p.satellites, sat)
 	}
 
-	p.visited = make(map[*types.Satellite]bool)
+	p.visited = make(map[types.Satellite]bool)
 	p.pq.Clear()
 
 	// Add initial links from the local satellite to the priority queue
@@ -153,13 +143,13 @@ func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.Link, error) {
 			break
 		}
 
-		s1, _ := link.Node1.(*types.Satellite)
-		s2, _ := link.Node2.(*types.Satellite)
+		s1, _ := link.Node1.(types.Satellite)
+		s2, _ := link.Node2.(types.Satellite)
 		if p.visited[s1] && p.visited[s2] {
 			continue
 		}
 
-		var newSat *types.Satellite
+		var newSat types.Satellite
 		if !p.visited[s1] {
 			newSat = s1
 		} else {
@@ -167,10 +157,10 @@ func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.Link, error) {
 		}
 
 		// Enqueue all links from newSat to unvisited nodes
-		for _, l := range newSat.ISLProtocol.Links() {
+		for _, l := range newSat.GetLinkNodeProtocol().Links() {
 			if isl, ok := l.(*linkmod.IslLink); ok && isl.Distance() <= configs.MaxISLDistance {
-				s1, _ := isl.Node1.(*types.Satellite)
-				s2, _ := isl.Node2.(*types.Satellite)
+				s1, _ := isl.Node1.(types.Satellite)
+				s2, _ := isl.Node2.(types.Satellite)
 				if !(p.visited[s1] && p.visited[s2]) {
 					p.pq.Enqueue(isl, isl.Distance())
 				}
@@ -184,13 +174,7 @@ func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.Link, error) {
 	// Update established status of links
 	estSet := make(map[*linktypes.IslLink]bool)
 	for _, l := range mst {
-		l.SetEstablished(true)
 		estSet[l] = true
-	}
-	for _, l := range p.established {
-		if !estSet[l] {
-			l.SetEstablished(false)
-		}
 	}
 	p.established = mst
 

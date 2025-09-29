@@ -94,24 +94,29 @@ func (p *IslMstProtocol) UpdateLinks() ([]types.Link, error) {
 
 	p.mu.Lock()
 	// Return cached if position hasn't changed
-	if p.position.Equals(p.satellite.PositionVector()) {
+	if p.position.Equals(p.satellite.GetPosition()) {
 		p.mu.Unlock()
 		p.resetEvent.Wait() // Wait until ready
 		return p.resultCache, nil
 	}
-	p.position = p.satellite.PositionVector()
+	p.position = p.satellite.GetPosition()
 	p.resetEvent.Reset() // Mark as busy
 	p.mu.Unlock()
 
-	// Collect all satellites from links
-	satMap := map[string]types.Node{}
-	for l := range p.setLink {
-		satMap[l.Node1.GetName()] = l.Node1
-		satMap[l.Node2.GetName()] = l.Node2
+	if p.satellites == nil {
+		// Collect all satellites from links
+		satMap := map[string]types.Node{}
+		for l := range p.setLink {
+			satMap[l.Node1.GetName()] = l.Node1
+			satMap[l.Node2.GetName()] = l.Node2
+		}
+		p.satellites = make([]types.Node, 0, len(satMap))
+		for _, sat := range satMap {
+			p.satellites = append(p.satellites, sat)
+		}
 	}
-	p.satellites = make([]types.Node, 0, len(satMap))
-	for _, sat := range satMap {
-		p.satellites = append(p.satellites, sat)
+
+	for _, sat := range p.satellites {
 		p.representatives[sat.GetName()] = sat.GetName()
 	}
 
@@ -154,13 +159,7 @@ func (p *IslMstProtocol) UpdateLinks() ([]types.Link, error) {
 	// Update established set
 	estSet := make(map[*linktypes.IslLink]bool)
 	for _, l := range mst {
-		l.SetEstablished(true)
 		estSet[l] = true
-	}
-	for _, l := range p.established {
-		if !estSet[l] {
-			l.SetEstablished(false)
-		}
 	}
 	p.established = mst
 
@@ -178,16 +177,6 @@ func (p *IslMstProtocol) getRepresentative(name string) string {
 		name = p.representatives[name]
 	}
 	return name
-}
-
-// ConnectSatellite is not implemented in this strategy.
-func (p *IslMstProtocol) ConnectSatellite(types.Node) error {
-	return errors.New("ConnectSatellite not implemented")
-}
-
-// DisconnectSatellite is not implemented in this strategy.
-func (p *IslMstProtocol) DisconnectSatellite(types.Node) error {
-	return errors.New("DisconnectSatellite not implemented")
 }
 
 // Links returns a snapshot of all known candidate links.

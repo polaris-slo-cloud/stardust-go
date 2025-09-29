@@ -57,6 +57,5 @@ func (s *SatelliteLoaderService) Start() error {
 		nodes = append(nodes, node)   // Append pointer to slice
 	}
 
-	log.Printf("Injecting %d satellites into simulation", len(satellites))
 	return s.controller.InjectSatellites(nodes)
 }

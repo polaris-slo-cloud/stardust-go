@@ -53,8 +53,19 @@ func (p *IslNearestProtocol) ConnectLink(link types.Link) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.incoming[link] = true
-	p.established = append(p.established, link)
+	if !contains(p.established, link) {
+		p.established = append(p.established, link)
+	}
 	return nil
+}
+
+func contains(list []types.Link, link types.Link) bool {
+	for _, l := range list {
+		if l == link {
+			return true
+		}
+	}
+	return false
 }
 
 // DisconnectLink removes the incoming status if it's not also an outgoing link.
@@ -70,30 +81,6 @@ func (p *IslNearestProtocol) DisconnectLink(link types.Link) error {
 	}
 	p.established = newSlice
 	delete(p.incoming, link)
-	return nil
-}
-
-// ConnectSatellite is a helper to find and connect to a specific satellite.
-func (p *IslNearestProtocol) ConnectSatellite(s types.Node) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	for _, l := range p.links {
-		if l.Node1 == s || l.Node2 == s {
-			return p.ConnectLink(l)
-		}
-	}
-	return errors.New("no link to target satellite found")
-}
-
-// DisconnectSatellite is a helper to find and disconnect from a specific satellite.
-func (p *IslNearestProtocol) DisconnectSatellite(s types.Node) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	for _, l := range p.links {
-		if l.Node1 == s || l.Node2 == s {
-			return p.DisconnectLink(l)
-		}
-	}
 	return nil
 }
 
@@ -135,7 +122,6 @@ func (p *IslNearestProtocol) UpdateLinks() ([]types.Link, error) {
 			if other := l.GetOther(p.satellite); other != nil {
 				other.GetLinkNodeProtocol().ConnectLink(l)
 			}
-			l.SetEstablished(true)
 		} else {
 			delete(prevOut, l)
 		}
@@ -146,7 +132,6 @@ func (p *IslNearestProtocol) UpdateLinks() ([]types.Link, error) {
 		if other := l.GetOther(p.satellite); other != nil {
 			other.GetLinkNodeProtocol().DisconnectLink(l)
 		}
-		l.SetEstablished(false)
 	}
 
 	p.mu.Lock()
@@ -172,5 +157,6 @@ func (p *IslNearestProtocol) Links() []types.Link {
 
 // Established returns all active links (incoming or outgoing).
 func (p *IslNearestProtocol) Established() []types.Link {
+
 	return p.established
 }

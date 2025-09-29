@@ -43,16 +43,6 @@ func (p *IslAddLoopProtocol) DisconnectLink(link types.Link) error {
 	return p.inner.DisconnectLink(link)
 }
 
-// ConnectSatellite delegates to the wrapped protocol.
-func (p *IslAddLoopProtocol) ConnectSatellite(s types.Node) error {
-	return p.inner.ConnectSatellite(s)
-}
-
-// DisconnectSatellite delegates to the wrapped protocol.
-func (p *IslAddLoopProtocol) DisconnectSatellite(s types.Node) error {
-	return p.inner.DisconnectSatellite(s)
-}
-
 // Links returns all *IslLink links from the wrapped protocol.
 func (p *IslAddLoopProtocol) Links() []types.Link {
 	return p.inner.Links()

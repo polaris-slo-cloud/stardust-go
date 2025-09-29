@@ -45,6 +45,5 @@ func (s *GroundStationLoaderService) Start() error {
 		nodes = append(nodes, node) // Append pointer to slice
 	}
 
-	log.Printf("Injecting %d ground stations into simulation", len(groundStations))
 	return s.controller.InjectGroundStations(nodes)
 }

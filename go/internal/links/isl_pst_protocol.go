@@ -85,16 +85,6 @@ func (p *IslPstProtocol) DisconnectLink(link types.Link) error {
 	return nil
 }
 
-// ConnectSatellite is a stub
-func (p *IslPstProtocol) ConnectSatellite(s types.Node) error {
-	return errors.New("ConnectSatellite not implemented")
-}
-
-// DisconnectSatellite is a stub
-func (p *IslPstProtocol) DisconnectSatellite(s types.Node) error {
-	return errors.New("DisconnectSatellite not implemented")
-}
-
 // UpdateLinks recalculates which links to establish using a distributed MST-style heuristic
 func (p *IslPstProtocol) UpdateLinks() ([]types.Link, error) {
 	if p.satellite == nil {
@@ -102,12 +92,12 @@ func (p *IslPstProtocol) UpdateLinks() ([]types.Link, error) {
 	}
 
 	p.mu.Lock()
-	if p.position.Equals(p.satellite.PositionVector()) {
+	if p.position.Equals(p.satellite.GetPosition()) {
 		p.mu.Unlock()
 		p.resetEvent.Wait()
 		return p.resultCache, nil
 	}
-	p.position = p.satellite.PositionVector()
+	p.position = p.satellite.GetPosition()
 	p.resetEvent.Reset()
 	p.mu.Unlock()
 
@@ -157,13 +147,7 @@ func (p *IslPstProtocol) UpdateLinks() ([]types.Link, error) {
 
 	estSet := make(map[*linktypes.IslLink]bool)
 	for _, l := range mstLinks {
-		l.SetEstablished(true)
 		estSet[l] = true
-	}
-	for _, l := range p.established {
-		if !estSet[l] {
-			l.SetEstablished(false)
-		}
 	}
 	p.established = mstLinks
 

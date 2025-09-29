@@ -4,7 +4,5 @@ package types
 type InterSatelliteLinkProtocol interface {
 	LinkNodeProtocol
 
-	ConnectSatellite(s Node) error
-	DisconnectSatellite(s Node) error
 	AddLink(link Link)
 }

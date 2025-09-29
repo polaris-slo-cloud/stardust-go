@@ -6,6 +6,7 @@ import (
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/computing"
 	"github.com/keniack/stardustGo/internal/links"
+	"github.com/keniack/stardustGo/internal/node"
 	"github.com/keniack/stardustGo/internal/routing"
 	"github.com/keniack/stardustGo/pkg/types"
 )
@@ -28,9 +29,9 @@ type SatelliteBuilder struct {
 }
 
 // NewSatelliteBuilder creates a new SatelliteBuilder with required dependencies.
-func NewSatelliteBuilder(router *routing.RouterBuilder, computing *computing.DefaultComputingBuilder, islConfig configs.InterSatelliteLinkConfig) *SatelliteBuilder {
+func NewSatelliteBuilder(routerBuilder *routing.RouterBuilder, computing *computing.DefaultComputingBuilder, islConfig configs.InterSatelliteLinkConfig) *SatelliteBuilder {
 	return &SatelliteBuilder{
-		routerBuilder:    router,
+		routerBuilder:    routerBuilder,
 		computingBuilder: computing,
 		islConfig:        islConfig,                              // Initialize the ISL config
 		islBuilder:       links.NewIslProtocolBuilder(islConfig), // Pass the ISL config to the builder
@@ -85,7 +86,7 @@ func (b *SatelliteBuilder) ConfigureISL(fn func(builder *links.IslProtocolBuilde
 }
 
 // Build constructs the Satellite instance from configured parameters.
-func (b *SatelliteBuilder) Build() *types.Satellite {
+func (b *SatelliteBuilder) Build() types.Satellite {
 	// Handle the error returned by routerBuilder.Build()
 	router, err := b.routerBuilder.Build()
 	if err != nil {
@@ -94,7 +95,7 @@ func (b *SatelliteBuilder) Build() *types.Satellite {
 		panic("failed to build router: " + err.Error())
 	}
 
-	return types.NewSatellite(
+	return node.NewSatellite(
 		b.name,
 		b.inclination,
 		b.rightAscension,
@@ -106,6 +107,6 @@ func (b *SatelliteBuilder) Build() *types.Satellite {
 		time.Now(), // Simulated current time, adjust if needed
 		b.islBuilder.Build(),
 		router, // Pass the router after error handling
-		b.computingBuilder.WithComputingType(configs.ComputingType(configs.Edge)).Build(),
+		b.computingBuilder.WithComputingType(types.ComputingType(types.Edge)).Build(),
 	)
 }
