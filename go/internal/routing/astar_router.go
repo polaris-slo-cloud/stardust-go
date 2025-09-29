@@ -36,8 +36,8 @@ func (r *AStarRouter) CanPreRouteCalc() bool { return false }
 // CanOnRouteCalc returns true for A* which calculates route on demand. This method satisfies the IRouter interface.
 func (r *AStarRouter) CanOnRouteCalc() bool { return true }
 
-// CalculateRoutingTableAsync is not applicable to A* as it is a reactive algorithm. This method is a placeholder to satisfy the IRouter interface.
-func (r *AStarRouter) CalculateRoutingTableAsync() error {
+// CalculateRoutingTable is not applicable to A* as it is a reactive algorithm. This method is a placeholder to satisfy the IRouter interface.
+func (r *AStarRouter) CalculateRoutingTable() error {
 	// A* doesn't need a pre-calculated table, so this method is effectively a no-op.
 	return nil
 }
@@ -54,8 +54,8 @@ func (r *AStarRouter) ReceiveServiceAdvertismentsAsync(serviceName string, outli
 	return nil
 }
 
-// RouteAsync finds the nearest node that hosts the service and routes to it.
-func (r *AStarRouter) RouteAsync(serviceName string, payload types.Payload) (types.RouteResult, error) {
+// RouteToService finds the nearest node that hosts the service and routes to it.
+func (r *AStarRouter) RouteToService(serviceName string, payload types.Payload) (types.RouteResult, error) {
 	if r.self == nil {
 		return nil, errors.New("router not mounted")
 	}
@@ -77,8 +77,8 @@ func (r *AStarRouter) RouteAsync(serviceName string, payload types.Payload) (typ
 	return r.RouteTo(candidates[0], payload)
 }
 
-// RouteAsyncToNode is used to route to a specific node. This method satisfies the IRouter interface.
-func (r *AStarRouter) RouteAsyncToNode(target types.Node, payload types.Payload) (types.RouteResult, error) {
+// RouteToNode is used to route to a specific node. This method satisfies the IRouter interface.
+func (r *AStarRouter) RouteToNode(target types.Node, payload types.Payload) (types.RouteResult, error) {
 	if r.self == nil {
 		return nil, errors.New("router not mounted")
 	}

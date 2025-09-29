@@ -6,7 +6,6 @@ import (
 
 // Vector represents a 3D position in space
 // Used for coordinates of nodes in the simulation
-
 type Vector struct {
 	X float64
 	Y float64
@@ -64,7 +63,7 @@ func (v Vector) Subtract(other Vector) Vector {
 	}
 }
 
-// degreesToRadians converts an angle in degrees to radians
+// DegreesToRadians converts an angle in degrees to radians
 func DegreesToRadians(deg float64) float64 {
 	return deg * math.Pi / 180.0
 }

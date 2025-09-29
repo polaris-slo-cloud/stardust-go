@@ -4,6 +4,7 @@ import (
 	"reflect"
 )
 
+// StatePlugin provides the interface of state plugins
 type StatePlugin interface {
 
 	// GetName returns the name of the plugin

@@ -58,8 +58,8 @@ func main() {
 			var l2 = ground2.GetLinkNodeProtocol().Established()[0]
 			var uplinkSat1 = l1.GetOther(ground1)
 			var uplinkSat2 = l2.GetOther(ground2)
-			var route, err = ground1.GetRouter().RouteAsyncToNode(ground2, nil)
-			var interSatelliteRoute, _ = uplinkSat1.GetRouter().RouteAsyncToNode(uplinkSat2, nil)
+			var route, err = ground1.GetRouter().RouteToNode(ground2, nil)
+			var interSatelliteRoute, _ = uplinkSat1.GetRouter().RouteToNode(uplinkSat2, nil)
 			if err != nil {
 				log.Println("Routing error:", err)
 			} else {

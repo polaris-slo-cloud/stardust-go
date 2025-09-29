@@ -107,7 +107,7 @@ func (s *SimulationService) runSimulationStep(nextTime func(time.Time) time.Time
 			wg.Add(1)
 			go func(n types.Node) {
 				defer wg.Done()
-				n.GetRouter().CalculateRoutingTableAsync()
+				n.GetRouter().CalculateRoutingTable()
 			}(node)
 		}
 		wg.Wait()

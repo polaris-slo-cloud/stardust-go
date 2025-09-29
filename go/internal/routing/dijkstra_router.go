@@ -54,8 +54,8 @@ func (r *DijkstraRouter) CanPreRouteCalc() bool { return true }
 // CanOnRouteCalc returns true (also usable live)
 func (r *DijkstraRouter) CanOnRouteCalc() bool { return true }
 
-// RouteAsyncToNode finds a route to a specific node
-func (r *DijkstraRouter) RouteAsyncToNode(target types.Node, payload types.Payload) (types.RouteResult, error) {
+// RouteToNode finds a route to a specific node
+func (r *DijkstraRouter) RouteToNode(target types.Node, payload types.Payload) (types.RouteResult, error) {
 	if r.node == nil {
 		return nil, errors.New("router not mounted")
 	}
@@ -69,8 +69,8 @@ func (r *DijkstraRouter) RouteAsyncToNode(target types.Node, payload types.Paylo
 	return UnreachableRouteResultInstance, nil
 }
 
-// RouteAsync finds a route by service name
-func (r *DijkstraRouter) RouteAsync(serviceName string, payload types.Payload) (types.RouteResult, error) {
+// RouteToService finds a route by service name
+func (r *DijkstraRouter) RouteToService(serviceName string, payload types.Payload) (types.RouteResult, error) {
 	if r.node == nil {
 		return nil, errors.New("router not mounted")
 	}
@@ -90,8 +90,8 @@ func (r *DijkstraRouter) RouteAsync(serviceName string, payload types.Payload) (
 	return UnreachableRouteResultInstance, nil
 }
 
-// CalculateRoutingTableAsync populates all shortest paths using Dijkstra
-func (r *DijkstraRouter) CalculateRoutingTableAsync() error {
+// CalculateRoutingTable populates all shortest paths using Dijkstra
+func (r *DijkstraRouter) CalculateRoutingTable() error {
 	if r.node == nil {
 		return errors.New("router not mounted")
 	}

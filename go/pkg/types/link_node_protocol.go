@@ -1,14 +1,15 @@
 package types
 
+// LinkNodeProtocol defines methods which link node protocols have to implement
 type LinkNodeProtocol interface {
 
 	// Mount associates this protocol instance with the given node
-	Mount(s Node)
+	Mount(node Node)
 
-	// ConnectLink adds a new link to the protocol's management
+	// ConnectLink establishes the given link
 	ConnectLink(link Link) error
 
-	// DisconnectLink removes the given link from the protocol's management
+	// DisconnectLink removes the given link from established links
 	DisconnectLink(link Link) error
 
 	// UpdateLinks calculates and returns the current list of established links

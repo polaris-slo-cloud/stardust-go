@@ -2,7 +2,7 @@ package types
 
 import "time"
 
-// INode represents any node in the simulation (satellite or ground).
+// Node represents any node in the simulation (satellite or ground).
 type Node interface {
 
 	// GetName returns the name of the node
