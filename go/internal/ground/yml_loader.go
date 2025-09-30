@@ -19,11 +19,13 @@ type rawGroundStation struct {
 	ComputingType string  `yaml:"ComputingType"`
 }
 
+// GroundStationYmlLoader is responsible for loading ground station configurations from a YAML file.
 type GroundStationYmlLoader struct {
 	config               configs.GroundLinkConfig
 	groundStationBuilder *GroundStationBuilder
 }
 
+// NewGroundStationYmlLoader initializes a new GroundStationYmlLoader.
 func NewGroundStationYmlLoader(
 	config configs.GroundLinkConfig,
 	builder *GroundStationBuilder,
@@ -34,6 +36,7 @@ func NewGroundStationYmlLoader(
 	}
 }
 
+// Load reads a YAML file from the specified path and parses its content to build the ground stations slice.
 func (l *GroundStationYmlLoader) Load(path string, satellites []types.Satellite) ([]types.GroundStation, error) {
 	file, err := os.Open(path)
 	if err != nil {

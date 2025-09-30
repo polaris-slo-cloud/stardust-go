@@ -1,0 +1,10 @@
+StepInterval: -1
+StepMultiplier: 10
+StepCount: 10
+SatelliteDataSource: starlink_500.tle
+SatelliteDataSourceType: tle
+GroundStationDataSource: ground_stations.yml
+GroundStationDataSourceType: yml
+UsePreRouteCalc: false
+MaxCpuCores: 30
+SimulationStartTime: "2025-01-01T00:00:00Z"

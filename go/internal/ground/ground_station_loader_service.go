@@ -6,6 +6,8 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+// GroundStationLoaderService is responsible for loading ground station configurations
+// from a specified data source and injecting them into the simulation controller.
 type GroundStationLoaderService struct {
 	controller                types.SimulationController
 	groundStationBuilder      *GroundStationBuilder
@@ -14,6 +16,7 @@ type GroundStationLoaderService struct {
 	groundStationSourceFormat string
 }
 
+// NewGroundStationLoaderService initializes a new GroundStationLoaderService.
 func NewGroundStationLoaderService(
 	controller types.SimulationController,
 	builder *GroundStationBuilder,
@@ -30,6 +33,9 @@ func NewGroundStationLoaderService(
 	}
 }
 
+// Start loads ground station configurations from the data source, converts them to Node types,
+// and injects them into the simulation controller.
+// Returns an error if the loading or injection process fails.
 func (s *GroundStationLoaderService) Start() error {
 	log.Println("Starting LoaderService...")
 	groundStations, err := s.groundStationLoader.Load(s.groundStationDataSource, s.controller.GetSatellites())

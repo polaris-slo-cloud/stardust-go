@@ -4,5 +4,6 @@ package types
 type InterSatelliteLinkProtocol interface {
 	LinkNodeProtocol
 
+	// AddLink adds a new link to the protocol's management
 	AddLink(link Link)
 }
