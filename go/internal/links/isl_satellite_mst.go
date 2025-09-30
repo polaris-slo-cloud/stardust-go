@@ -6,7 +6,6 @@ import (
 
 	"github.com/keniack/stardustGo/configs"
 	"github.com/keniack/stardustGo/internal/links/linktypes"
-	linkmod "github.com/keniack/stardustGo/internal/links/linktypes"
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
@@ -158,7 +157,7 @@ func (p *IslSatelliteCentricMstProtocol) UpdateLinks() ([]types.Link, error) {
 
 		// Enqueue all links from newSat to unvisited nodes
 		for _, l := range newSat.GetLinkNodeProtocol().Links() {
-			if isl, ok := l.(*linkmod.IslLink); ok && isl.Distance() <= configs.MaxISLDistance {
+			if isl, ok := l.(*linktypes.IslLink); ok && isl.Distance() <= configs.MaxISLDistance {
 				s1, _ := isl.Node1.(types.Satellite)
 				s2, _ := isl.Node2.(types.Satellite)
 				if !(p.visited[s1] && p.visited[s2]) {

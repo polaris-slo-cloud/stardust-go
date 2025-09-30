@@ -11,7 +11,8 @@ var _ types.Satellite = (*SatelliteStruct)(nil) // Ensure SatelliteStruct implem
 
 // SatelliteStruct represents a single satellite node in the simulation.
 type SatelliteStruct struct {
-	BaseNode // Embedding Node struct to satisfy the Node interface
+	// Implementing Node methods via the embedded Node struct
+	BaseNode // Embedding BaseNode struct to satisfy the Node interface
 
 	inclination          float64
 	inclinationRad       float64
@@ -22,7 +23,6 @@ type SatelliteStruct struct {
 	argumentOfPerigeeRad float64
 	meanAnomaly          float64
 	meanMotion           float64
-	semiMajorAxis        float64
 	epoch                time.Time
 	ISLProtocol          types.InterSatelliteLinkProtocol
 	groundLinks          []types.Link
@@ -55,57 +55,6 @@ func NewSatellite(name string, inclination, raan, ecc, argPerigee, meanAnomaly, 
 	router.Mount(s)
 	s.UpdatePosition(simTime)
 	return s
-}
-
-// Implementing Node methods via the embedded Node struct
-
-// GetName returns the name of the satellite (from Node)
-func (s *SatelliteStruct) GetName() string {
-	return s.Name
-}
-
-// GetPosition returns the satellite's current position
-func (s *SatelliteStruct) GetPosition() types.Vector {
-	return s.position
-}
-
-// DistanceTo calculates the distance between this satellite and another node (satellite or ground station)
-func (s *SatelliteStruct) DistanceTo(other types.Node) float64 {
-	return s.position.Subtract(other.GetPosition()).Magnitude()
-}
-
-func (s *SatelliteStruct) GetComputing() types.Computing {
-	return s.Computing
-}
-
-// GetLinks returns all links connected to the satellite (both ISL and ground links)
-func (s *SatelliteStruct) GetLinks() []types.Link {
-	// Combine inter-satellite links and ground links
-	var allLinks []types.Link
-
-	// Add inter-satellite links (ISL links)
-	for _, link := range s.ISLProtocol.Links() {
-		allLinks = append(allLinks, link)
-	}
-
-	// Add ground links
-	for _, groundLink := range s.groundLinks {
-		allLinks = append(allLinks, groundLink)
-	}
-
-	return allLinks
-}
-
-func (s *SatelliteStruct) GetEstablishedLinks() []types.Link {
-	var establishedLinks []types.Link
-	s.ISLProtocol.Established()
-	for _, link := range s.ISLProtocol.Established() {
-		establishedLinks = append(establishedLinks, link)
-	}
-	for _, groundLink := range s.groundLinks {
-		establishedLinks = append(establishedLinks, groundLink)
-	}
-	return establishedLinks
 }
 
 // UpdatePosition calculates the satellite's position in the ECI frame based on orbital elements and simulation time
