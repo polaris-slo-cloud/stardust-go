@@ -11,6 +11,7 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+// GroundStationBuilder is a builder pattern implementation for creating ground stations.
 type GroundStationBuilder struct {
 	name      string
 	latitude  float64
@@ -23,6 +24,7 @@ type GroundStationBuilder struct {
 	computingBuilder *computing.DefaultComputingBuilder
 }
 
+// NewGroundStationBuilder initializes a new GroundStationBuilder
 func NewGroundStationBuilder(simStartTime time.Time, router *routing.RouterBuilder, computing *computing.DefaultComputingBuilder, config configs.GroundLinkConfig) *GroundStationBuilder {
 	return &GroundStationBuilder{
 		simStartTime:     simStartTime,
@@ -32,37 +34,45 @@ func NewGroundStationBuilder(simStartTime time.Time, router *routing.RouterBuild
 	}
 }
 
+// SetName sets the name of the ground station and returns the builder for chaining.
 func (b *GroundStationBuilder) SetName(name string) *GroundStationBuilder {
 	b.name = name
 	return b
 }
 
+// SetLatitude sets the latitude coordinate of the ground station and returns the builder for chaining.
 func (b *GroundStationBuilder) SetLatitude(value float64) *GroundStationBuilder {
 	b.latitude = value
 	return b
 }
 
+// SetLongitude sets the longitude coordinate of the ground station and returns the builder for chaining.
 func (b *GroundStationBuilder) SetLongitude(value float64) *GroundStationBuilder {
 	b.longitude = value
 	return b
 }
 
+// SetAltitude sets the altitude of the ground station and returns the builder for chaining.
 func (b *GroundStationBuilder) SetAltitude(value float64) *GroundStationBuilder {
 	b.altitude = value
 	return b
 }
 
+// SetComputingType sets the computing type for the ground station and returns the builder for chaining.
 func (b *GroundStationBuilder) SetComputingType(value string) *GroundStationBuilder {
 	ctype, _ := types.ToComputingType(value)
 	b.computingBuilder.WithComputingType(ctype)
 	return b
 }
 
+// ConfigureGroundLinkProtocol allows for custom configuration of the ground link protocol.
 func (b *GroundStationBuilder) ConfigureGroundLinkProtocol(fn func(*links.GroundProtocolBuilder) *links.GroundProtocolBuilder) *GroundStationBuilder {
 	b.protocolBuilder = fn(b.protocolBuilder)
 	return b
 }
 
+// Build constructs and returns a new GroundStation using the configured properties.
+// It panics if the router cannot be built.
 func (b *GroundStationBuilder) Build() types.GroundStation {
 	router, err := b.routerBuilder.Build()
 	if err != nil {

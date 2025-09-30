@@ -7,6 +7,8 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
+// SimulationStateSerializer is responsible for serializing the state of a simulation.
+// (including StatePlugins)
 type SimulationStateSerializer struct {
 	outputFile   string
 	metadata     types.SimulationMetadata
@@ -14,6 +16,7 @@ type SimulationStateSerializer struct {
 	statePlugins []types.StatePlugin
 }
 
+// NewSimulationStateSerializer initializes a new SimulationStateSerializer.
 func NewSimulationStateSerializer(outputFile string, statePlugins []types.StatePlugin) *SimulationStateSerializer {
 	return &SimulationStateSerializer{
 		outputFile:   outputFile,

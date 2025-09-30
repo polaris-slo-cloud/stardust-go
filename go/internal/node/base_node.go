@@ -8,7 +8,6 @@ import (
 
 // Node defines a common interface/base for satellites and ground stations
 // Since Go has no abstract classes, we use interface + embedding
-
 type BaseNode struct {
 	Name      string
 	Router    types.Router

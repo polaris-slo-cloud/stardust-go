@@ -7,11 +7,13 @@ import (
 
 var _ types.Link = (*PrecomputedLink)(nil)
 
+// PrecomputedLink represents a precomputed link (no actual calculations with this link)
 type PrecomputedLink struct {
 	Node1 types.Node
 	Node2 types.Node
 }
 
+// NewPrecomputedLink creates a new link between precomputed Nodes
 func NewPrecomputedLink(node1 types.Node, node2 types.Node) *PrecomputedLink {
 	return &PrecomputedLink{
 		Node1: node1,
