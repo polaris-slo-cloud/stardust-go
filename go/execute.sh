@@ -11,7 +11,7 @@ execute() {
   local PID=$!
 
   # CSV-Header schreiben
-  echo "Timestamp,PID,CPU_Total(%),$(seq 0 $(( $(nproc) - 1 )) | sed 's/^/CPU_Core_/')" > "$CSVFILE"
+  echo "Timestamp,PID,CPU_Total(%),$(seq 0 $(( $(nproc) - 1 )) | sed 's/^/CPU_Core_/' | paste -sd,)" > "$CSVFILE"
 
   # Funktion, um die CPU-Auslastung zu sammeln und in die CSV zu schreiben
   monitor_cpu() {
