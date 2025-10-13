@@ -90,24 +90,26 @@ Edit the simulation configuration files in the `./resources/configs/` directory.
 
 ## 🧠 Writing Your Own Simulation Logic
 
-You can plug in your own service logic by using the SimulationController in main entrypoint or by implementing SimPlugin or StatePlugin.
-
-```go
-// TODO main, SimPlugin, StatePlugin
-```
+You can plug in your own service logic by using the SimulationController in main entrypoint or by implementing [SimPlugin](./go/internal/simplugin/dummy_plugin.go) or [StatePlugin](./go/internal/stateplugin/dummy_sun_state_plugin.go).
 
 ## 🧱 Project Structure
 ```aiignore
 ├── cmd/stardust/           # Main entry point
 ├── configs/                # Configuration files
 ├── internal/
-│   ├── satellite/          # Node and constellation modeling
-│   ├── routing/            # Routing protocols
 │   ├── computing/          # Compute strategies
 │   ├── deployment/         # Orchestration strategies
-│   └── simulation/         # Simulation engine
+│   ├── ground/             # Utils to load ground stations
+│   ├── links/              # Links and link protocols
+│   ├── node/               # Node and ground station modeling
+│   ├── routing/            # Routing protocols
+│   ├── satellite/          # Utils to load satellite constellations
+│   ├── simulation/         # Simulation engine
+│   ├── simplugins/         # Simulation plugins
+│   └── stateplugins/       # State plugins
 ├── pkg/types/              # Interfaces and shared types
-├── resources/              # TLE files and data
+├── resources/
+│   ├── configs/            # configurations
+│   └── tle/                # TLE datasets
 └── go.mod                  # Module definition
-
 ```
