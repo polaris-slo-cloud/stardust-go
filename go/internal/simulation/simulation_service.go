@@ -22,7 +22,6 @@ type SimulationService struct {
 
 	simplugins      []types.SimulationPlugin
 	statePluginRepo *types.StatePluginRepository
-	maxCores        int
 	running         bool
 
 	simulationStateSerializer *SimulationStateSerializer
@@ -40,7 +39,6 @@ func NewSimulationService(
 	simService := &SimulationService{
 		routerBuilder:    router,
 		computingBuilder: computing,
-		maxCores:         config.MaxCpuCores,
 		simplugins:       simplugins,
 		statePluginRepo:  statePluginRepo,
 	}

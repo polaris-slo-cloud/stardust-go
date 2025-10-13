@@ -32,7 +32,14 @@ func main() {
 	flag.Parse()
 
 	simulationPluginList := strings.Split(*simulationPluginString, ",")
+	if *simulationPluginString == "" {
+		simulationPluginList = []string{}
+	}
+
 	statePluginList := strings.Split(*statePluginString, ",")
+	if *statePluginString == "" {
+		statePluginList = []string{}
+	}
 
 	// Step 1: Load configuration
 	simulationConfig, err := configs.LoadConfigFromFile[configs.SimulationConfig](*simulationConfigString)

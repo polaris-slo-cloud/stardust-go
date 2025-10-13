@@ -26,7 +26,6 @@ type SatelliteStruct struct {
 	epoch                time.Time
 	ISLProtocol          types.InterSatelliteLinkProtocol
 	groundLinks          []types.Link
-	position             types.Vector
 }
 
 // NewSatellite initializes a new Satellite object with orbital configuration and ISL protocol.
@@ -72,7 +71,7 @@ func (s *SatelliteStruct) UpdatePosition(simTime time.Time) {
 	yp := distance * math.Sin(trueAnomaly)
 	zp := 0.0
 
-	s.position = applyOrbitalTransformations(xp, yp, zp, s.inclinationRad, s.argumentOfPerigeeRad, s.rightAscensionRad)
+	s.Position = applyOrbitalTransformations(xp, yp, zp, s.inclinationRad, s.argumentOfPerigeeRad, s.rightAscensionRad)
 }
 
 func (s *SatelliteStruct) GetLinkNodeProtocol() types.LinkNodeProtocol {
