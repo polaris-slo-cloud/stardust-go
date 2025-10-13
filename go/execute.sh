@@ -1,45 +1,49 @@
 #!/bin/bash
 
-# Funktion zum Ausführen des Kommandos und Monitoring der CPU
+# Function to execute the command and monitor CPU usage
 execute() {
   local COMMAND=$1
   local LOGFILE=$2
   local CSVFILE=$3
 
-  # Starte den Befehl im Hintergrund und speichere die PID
+  # Start the command in the background and save the PID
   $COMMAND > "$LOGFILE" 2>&1 &
   local PID=$!
 
-  # CSV-Header schreiben
-  echo "Timestamp,PID,CPU_Total(%),$(seq 0 $(( $(nproc) - 1 )) | sed 's/^/CPU_Core_/' | paste -sd,)" > "$CSVFILE"
+  # Write the CSV header
+  echo "Timestamp,PID,CPU_Total(%),MEM_Absolute(KB),MEM_Relative(%),$(seq 0 $(( $(nproc) - 1 )) | sed 's/^/CPU_Core_/' | paste -sd,)" > "$CSVFILE"
 
-  # Funktion, um die CPU-Auslastung zu sammeln und in die CSV zu schreiben
+  # Function to collect CPU usage and write it to the CSV file
   monitor_cpu() {
     while kill -0 "$PID" 2>/dev/null; do
-      # Hole die CPU-Auslastung pro Core für die PID
-      CPU_STATS=$(top -b -n 1 -p "$PID" | awk 'NR==8')
-      CPU_TOTAL=$(echo "$CPU_STATS" | awk '{print $9}')
+        # Get CPU usage for the PID
+        CPU_STATS=$(top -b -n 1 -p "$PID" | awk 'NR==8')
+        CPU_TOTAL=$(echo "$CPU_STATS" | awk '{print $9}')
 
-      # Hole die CPU-Auslastung pro Core (mit mpstat)
-      CORE_STATS=$(mpstat -P ALL 1 1 | awk '/^[0-9]/ {print $3}')
+        # Get memory usage for the PID (absolute and relative)
+        MEM_ABS=$(echo "$CPU_STATS" | awk '{print $6}')  # Absolute memory usage (e.g., in KB)
+        MEM_REL=$(echo "$CPU_STATS" | awk '{print $10}') # Relative memory usage (percentage)
 
-      # Aktuellen Timestamp erstellen
-      TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+        # Get per-core CPU usage
+        CORE_STATS=$(mpstat -P ALL 1 1 | awk '/^[0-9]/ {print $3}')
 
-      # Schreibe die Daten in die CSV-Datei
-      echo -n "$TIMESTAMP,$PID,$CPU_TOTAL," >> "$CSVFILE"
-      echo "$CORE_STATS" | paste -sd, >> "$CSVFILE"
+        # Create a timestamp
+        TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 
-      # Warte 1 Sekunde, bevor die nächsten Daten gesammelt werden
-      sleep 1
+        # Write data to the CSV file
+        echo -n "$TIMESTAMP,$PID,$CPU_TOTAL,$MEM_ABS,$MEM_REL," >> "$CSVFILE"
+        echo "$CORE_STATS" | paste -sd, >> "$CSVFILE"
+
+        # Wait 1 second before collecting the next data point
+        sleep 1
     done
   }
 
-  # Starte das Monitoring
+  # Start monitoring
   monitor_cpu
 
-  # Ausgabe, wenn der Prozess beendet ist
-  echo "Prozess mit PID $PID wurde beendet. CPU-Monitoring abgeschlossen für $CSVFILE."
+  # Output a message when the process ends
+  echo "Process with PID $PID has ended. CPU monitoring completed for $CSVFILE."
 }
 
 # Ensure required directories exist
