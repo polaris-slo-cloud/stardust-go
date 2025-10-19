@@ -1,10 +1,12 @@
 # StardustGo
 *A scalable and extensible simulator for the 3D Continuum*
+
 ## Overview
 StardustGo is a modular, extensible simulation framework for modeling and analyzing space-ground computing constellations. It includes abstractions for routing, inter-satellite link (ISL) protocols, satellite dynamics, and orchestrated deployments.
 
 Stardust is an open-source, scalable simulator designed to:  
 
+- Run resouce efficient on a single machine
 - Simulate mega-constellations of up to 20.6k satellites on a single machine
 - Support dynamic routing protocols for experimentation
 - Provide SimPlugin and StatePlugin extensibility to integrate and test your code directly  
@@ -91,6 +93,38 @@ Edit the simulation configuration files in the `./resources/configs/` directory.
 ## 🧠 Writing Your Own Simulation Logic
 
 You can plug in your own service logic by using the SimulationController in main entrypoint or by implementing [SimPlugin](./go/internal/simplugin/dummy_plugin.go) or [StatePlugin](./go/internal/stateplugin/dummy_sun_state_plugin.go).
+
+## 🏗️ Architecture & Extensibility
+
+StardustGo provides a flexible plugin architecture that allows developers to extend the simulator with custom components. The system is built around well-defined interfaces that enable seamless integration of new functionality.
+
+### Node Type Architecture
+
+The simulator supports extensible node types through interfaces defined in `./go/pkg/types`. You can implement custom component behaviors for different environments by matching interface implementations:
+
+- Node
+- Link
+- LinkNodeProtocol
+- Router
+- SimulationPlugin
+- StatePlugin
+
+For example, to add a new node type:
+1. Implement the `Node` interface from `./go/pkg/types/`
+2. Define the node's computational and networking capabilities
+3. Register the node type with the simulation framework
+
+### Plugin Architecture
+
+StardustGo supports two primary plugin types:
+
+#### Simulation Plugins
+Located in `./go/internal/simplugins/`, these plugins extend simulation behavior for scenario-specific simulation logic.
+
+#### State Plugins  
+Located in `./go/internal/stateplugins/`, these plugins manage simulation state:
+- Custom state persistence mechanisms
+- Scenario-specific simulation state logic (i.e. energy consumption and usage)
 
 ## 🧱 Project Structure
 ```aiignore
