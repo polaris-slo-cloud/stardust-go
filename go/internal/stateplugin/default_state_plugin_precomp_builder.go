@@ -24,7 +24,7 @@ func (pb *DefaultStatePluginPrecompBuilder) BuildPlugins(pluginNames []string) (
 	var plugins []types.StatePlugin
 	for _, name := range pluginNames {
 		switch name {
-		case "DummyPlugin":
+		case "DummySunStatePlugin":
 			plugins = append(plugins, NewDummySunStatePrecompPlugin(pb.filename))
 		default:
 			return nil, fmt.Errorf("unknown plugin: %s", name)

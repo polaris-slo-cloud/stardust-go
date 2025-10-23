@@ -121,10 +121,14 @@ StardustGo supports two primary plugin types:
 #### Simulation Plugins
 Located in `./go/internal/simplugins/`, these plugins extend simulation behavior for scenario-specific simulation logic.
 
+Currently only [DummyPlugin](./go/internal/simplugin/dummy_plugin.go) is implemented to show how its used and how it can interact with the simulation.
+
 #### State Plugins  
 Located in `./go/internal/stateplugins/`, these plugins manage simulation state:
 - Custom state persistence mechanisms
 - Scenario-specific simulation state logic (i.e. energy consumption and usage)
+
+Currently only [DummySunStatePlugin](./go/internal/stateplugin/dummy_sun_state_plugin.go) is implemented returning random sun exposure, to show the usage in simulation and precomputed mode.
 
 ## 🧱 Project Structure
 ```aiignore
