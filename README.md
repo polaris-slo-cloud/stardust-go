@@ -121,12 +121,19 @@ StardustGo supports two primary plugin types:
 #### Simulation Plugins
 Located in `./go/internal/simplugins/`, these plugins extend simulation behavior for scenario-specific simulation logic.
 
+SimPlugins run every simulation step and should implement per-timestep behavior that depends on the live simulation state. (Keep SimPlugins simple and lightweight.) For example a battery plugin to add some logic should be a simulation plugin since it is affected by individual simulation:
+
+BatteryWh = BatteryWh + GenerationWh (from StatePlugin) - ConsumptionWh (depends on current simulation i.e. other user interaction)
+
 Currently only [DummyPlugin](./go/internal/simplugin/dummy_plugin.go) is implemented to show how its used and how it can interact with the simulation.
 
 #### State Plugins  
 Located in `./go/internal/stateplugins/`, these plugins manage simulation state:
 - Custom state persistence mechanisms
 - Scenario-specific simulation state logic (i.e. energy consumption and usage)
+
+StatePlugins are meant to run only in simulation mode, so (heavy) computations are calculated only once in simulation mode, since its only dependent on the state and not influenced by simulation. In precomputed mode, the plugin reads the results from file and makes it accessible to the simulation, but no further computations are needed. 
+For example a sun exposure plugin to calculate power generation is only run in simulation mode. The result of the computation eg GenerationWh (calculate earth shadow or even the influence of the atmosphere) can be stored in a file for simulations in precomputed mode later.
 
 Currently only [DummySunStatePlugin](./go/internal/stateplugin/dummy_sun_state_plugin.go) is implemented returning random sun exposure, to show the usage in simulation and precomputed mode.
 
