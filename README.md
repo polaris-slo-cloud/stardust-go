@@ -126,6 +126,16 @@ SimPlugins run every simulation step and should implement per-timestep behavior 
 BatteryWh = BatteryWh + GenerationWh (from StatePlugin) - ConsumptionWh (depends on current simulation i.e. other user interaction)
 
 Currently only [DummyPlugin](./go/internal/simplugin/dummy_plugin.go) is implemented to show how its used and how it can interact with the simulation.
+The dummy plugin is registered with [SimPluginBuilder](./go/internal/simplugin/plugin_builder.go), so simulation plugins can be enabled or disabled per run via configuration. Add your plugin to the builder to make it selectable and easier to configure at runtime.
+
+All configured simulation plugins are called by [simulation controller](./go/internal/simulation/simulation_service.go#126) like this:
+```go
+for _, plugin := range s.simplugins {
+  if err := plugin.PostSimulationStep(s); err != nil {
+    log.Printf("Plugin %s PostSimulationStep error: %v", plugin.Name(), err)
+  }
+}
+```
 
 #### State Plugins  
 Located in `./go/internal/stateplugins/`, these plugins manage simulation state:
@@ -135,7 +145,23 @@ Located in `./go/internal/stateplugins/`, these plugins manage simulation state:
 StatePlugins are meant to run only in simulation mode, so (heavy) computations are calculated only once in simulation mode, since its only dependent on the state and not influenced by simulation. In precomputed mode, the plugin reads the results from file and makes it accessible to the simulation, but no further computations are needed. 
 For example a sun exposure plugin to calculate power generation is only run in simulation mode. The result of the computation eg GenerationWh (calculate earth shadow or even the influence of the atmosphere) can be stored in a file for simulations in precomputed mode later.
 
-Currently only [DummySunStatePlugin](./go/internal/stateplugin/dummy_sun_state_plugin.go) is implemented returning random sun exposure, to show the usage in simulation and precomputed mode.
+Currently only [DummySunStatePlugin](./go/internal/stateplugin/dummy_sun_state_plugin.go) is implemented returning random sun exposure, to show the usage in simulation and precomputed mode. 
+The dummy plugin is registered with [DefaultStatePluginBuilder](./go/internal/stateplugin/default_state_plugin_builder.go), so state plugins can be enabled or disabled per run via configuration. Add your plugin to the builder to make it selectable and easier to configure at runtime.
+
+All configured state plugins are called by [simulation controller](./go/internal/simulation/simulation_service.go#121) like this:
+```go
+for _, plugin := range s.statePluginRepo.GetAllPlugins() {
+  plugin.PostSimulationStep(s)
+}
+```
+
+You can access StatePlugins (in main program, SimPlugins, ...) by using [GetStatePlugin method](./go/pkg/types/state_plugin.go#54):
+```go
+// GetStatePlugin will panic if there is no such plugin type configured at runtime
+var statePlugin = types.GetStatePlugin[stateplugin.SunStatePlugin](simulationController.GetStatePluginRepository())
+```
+
+
 
 ## 🧱 Project Structure
 ```aiignore

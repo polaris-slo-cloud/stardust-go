@@ -6,16 +6,16 @@ import (
 	"github.com/keniack/stardustGo/pkg/types"
 )
 
-type PluginBuilder struct {
+type SimPluginBuilder struct {
 }
 
 // NewPluginBuilder creates a new instance of PluginBuilder
-func NewPluginBuilder() *PluginBuilder {
-	return &PluginBuilder{}
+func NewPluginBuilder() *SimPluginBuilder {
+	return &SimPluginBuilder{}
 }
 
 // BuildPlugins constructs plugin instances based on provided names
-func (pb *PluginBuilder) BuildPlugins(pluginNames []string) ([]types.SimulationPlugin, error) {
+func (pb *SimPluginBuilder) BuildPlugins(pluginNames []string) ([]types.SimulationPlugin, error) {
 	var plugins []types.SimulationPlugin
 	for _, name := range pluginNames {
 		switch name {
