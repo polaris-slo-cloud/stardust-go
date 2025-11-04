@@ -21,7 +21,7 @@ func (pb *DefaultStatePluginBuilder) BuildPlugins(pluginNames []string) ([]types
 	var plugins []types.StatePlugin
 	for _, name := range pluginNames {
 		switch name {
-		case "DummyPlugin":
+		case "DummySunStatePlugin":
 			plugins = append(plugins, NewDummySunStatePlugin())
 		default:
 			return nil, fmt.Errorf("unknown plugin: %s", name)

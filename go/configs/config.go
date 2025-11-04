@@ -20,7 +20,6 @@ type SimulationConfig struct {
 	GroundStationDataSource     string    `json:"GroundStationDataSource" yaml:"GroundStationDataSource"`
 	GroundStationDataSourceType string    `json:"GroundStationDataSourceType" yaml:"GroundStationDataSourceType"`
 	UsePreRouteCalc             bool      `json:"UsePreRouteCalc" yaml:"UsePreRouteCalc"`
-	MaxCpuCores                 int       `json:"MaxCpuCores" yaml:"MaxCpuCores"`
 	SimulationStartTime         time.Time `json:"SimulationStartTime" yaml:"SimulationStartTime"`
 }
 
