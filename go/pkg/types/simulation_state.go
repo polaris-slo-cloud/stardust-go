@@ -29,6 +29,7 @@ type NodeState struct {
 }
 
 type RawSatellite struct {
+	Index         int
 	Name          string
 	ComputingType ComputingType
 }

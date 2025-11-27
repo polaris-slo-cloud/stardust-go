@@ -1,0 +1,6 @@
+- Name: Vienna
+  Lat: 48.2082
+  Lon: 16.3738
+  Protocol: nearest
+  Router: default
+  ComputingType: Cloud

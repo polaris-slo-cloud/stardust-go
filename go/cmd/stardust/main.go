@@ -19,16 +19,51 @@ import (
 )
 
 func main() {
-	simulationConfigString := flag.String("simulationConfig", "", "Path to the simulation config file")
-	islConfigString := flag.String("islConfig", "", "Path to inter satellite link config file")
-	groundLinkConfigString := flag.String("groundLinkConfig", "", "Path to ground link config file")
-	computingConfigString := flag.String("computingConfig", "", "Path to computing config file")
-	routerConfigString := flag.String("routerConfig", "", "Path to router config file")
-	simulationStateOutputFile := flag.String("simulationStateOutputFile", "", "Path to output the simulation state (optional)")
-	simulationStateInputFile := flag.String("simulationStateInputFile", "", "Path to input the simulation state (optional)")
-	simulationPluginString := flag.String("simulationPlugins", "", "Plugin names (optional, comma-separated list)")
-	statePluginString := flag.String("statePlugins", "", "Plugin names (optional, comma-seperated list)")
-
+	simulationConfigString := flag.String(
+		"simulationConfig",
+		"./resources/configs/simulationAutorunConfig.yaml",
+		"Path to the simulation config file",
+	)
+	islConfigString := flag.String(
+		"islConfig",
+		"./resources/configs/islMstConfig.yaml",
+		"Path to inter satellite link config file",
+	)
+	groundLinkConfigString := flag.String(
+		"groundLinkConfig",
+		"./resources/configs/groundLinkNearestConfig.yaml",
+		"Path to ground link config file",
+	)
+	computingConfigString := flag.String(
+		"computingConfig",
+		"./resources/configs/computingConfig.yaml",
+		"Path to computing config file",
+	)
+	routerConfigString := flag.String(
+		"routerConfig",
+		"./resources/configs/routerAStarConfig.yaml",
+		"Path to router config file",
+	)
+	simulationStateOutputFile := flag.String(
+		"simulationStateOutputFile",
+		"./simulation_state_output.gob",
+		"Path to output the simulation state (optional)",
+	)
+	simulationStateInputFile := flag.String(
+		"simulationStateInputFile",
+		"",
+		"Path to input the simulation state (optional)",
+	)
+	simulationPluginString := flag.String(
+		"simulationPlugins",
+		"",
+		"Plugin names (optional, comma-separated list)",
+	)
+	statePluginString := flag.String(
+		"statePlugins",
+		"",
+		"Plugin names (optional, comma-separated list)",
+	)
 	flag.Parse()
 
 	simulationPluginList := strings.Split(*simulationPluginString, ",")

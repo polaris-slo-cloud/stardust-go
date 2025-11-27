@@ -2,6 +2,8 @@ package simulation
 
 import (
 	"encoding/gob"
+	"encoding/json"
+	"log"
 	"os"
 
 	"github.com/keniack/stardustGo/pkg/types"
@@ -57,11 +59,11 @@ func (s *SimulationStateSerializer) AddState(simulationController types.Simulati
 }
 
 func (s *SimulationStateSerializer) Save(simualtionController types.SimulationController) {
-
-	var satellites = simualtionController.GetSatellites()
+	satellites := simualtionController.GetSatellites()
 	s.metadata.Satellites = make([]types.RawSatellite, len(satellites))
 	for i, sat := range satellites {
 		s.metadata.Satellites[i] = types.RawSatellite{
+			Index:         i,
 			Name:          sat.GetName(),
 			ComputingType: sat.GetComputing().GetComputingType(),
 		}
@@ -75,18 +77,37 @@ func (s *SimulationStateSerializer) Save(simualtionController types.SimulationCo
 		}
 	}
 
+	s.metadata.StatePlugins = s.metadata.StatePlugins[:0]
 	for _, plugin := range s.statePlugins {
 		s.metadata.StatePlugins = append(s.metadata.StatePlugins, plugin.GetName())
 	}
 
-	file, _ := os.Create(s.outputFile)
+	// gob output
+	file, err := os.Create(s.outputFile)
+	if err != nil {
+		log.Printf("error creating gob file %s: %v", s.outputFile, err)
+		return
+	}
 	defer file.Close()
 
-	// Create an encoder
 	encoder := gob.NewEncoder(file)
+	if err := encoder.Encode(s.metadata); err != nil {
+		log.Printf("error encoding gob state: %v", err)
+	}
 
-	// Encode the data
-	encoder.Encode(s.metadata)
+	// JSON output, same base name plus .json
+	jsonPath := s.outputFile + ".json"
+	jsonFile, err := os.Create(jsonPath)
+	if err != nil {
+		log.Printf("error creating json file %s: %v", jsonPath, err)
+	} else {
+		defer jsonFile.Close()
+		jsonEnc := json.NewEncoder(jsonFile)
+		jsonEnc.SetIndent("", "  ")
+		if err := jsonEnc.Encode(s.metadata); err != nil {
+			log.Printf("error encoding json state: %v", err)
+		}
+	}
 
 	for _, plugin := range s.statePlugins {
 		plugin.Save(s.outputFile)
